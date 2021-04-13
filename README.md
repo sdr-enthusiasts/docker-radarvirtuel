@@ -2,7 +2,10 @@
 
 ## What is it?
 
-This application is a feeder service that takes RAW/AVR ADSB data from a service like `dump1090[-fa]`, `readsb`, and `tar1090`, and `adsbnetwork`'s RadarVirtuel data aggregator. It works similar to other data connectors from the @Mikenye family of ADSB tools.
+This application is a feeder service that takes RAW/AVR ADSB data from a service like `dump1090[-fa]`, `readsb`, and `tar1090`, and feeds this data to `adsbnetwork`'s RadarVirtuel data aggregator. It works similar to other data connectors from the @Mikenye family of ADSB tools.
+
+RadarVirtuel can be reached at:
+- http://www.radarvirtuel.com/
 
 ## Prerequisites
 1. The use of this connector service assumes that you already have a working ADS-B station setup, and that you enabled RAW (=AVR) data output on the application that actively processes your ADS-B data.
