@@ -9,8 +9,8 @@ services:
     network: radarvirtuel
     restart: always
     environment:
-      - FEEDER_KEY=xxxx:1234321432142314321
-      - SOURCE_HOST=readsb:30002
+      - FEEDER_KEY=xxxx:123456789ABCDEF
+      - SOURCE_HOST=${HOSTNAME}:30002
       - RV_SERVER=mg22.adsbnetwork.com:50050
       - VERBOSE=OFF
     tmpfs:
