@@ -1,0 +1,5 @@
+  /home/py/ANFeeder/sANfeeder_kbos.sh & 
+ Faire la commande ln -s /home/py/ANFeeder/imalive.sh /usr/bin/ 
+ Faire la commande ln -s /home/py/ANFeeder/RestartANfeeder.sh /usr/bin/ 
+ Rajouter la ligne :  */10 * * * * root /usr/bin/imalive.sh &  : sans ':' dans le fichier /etc/crontab  
+ Verifier si ntpdate et curl sont bien installés 

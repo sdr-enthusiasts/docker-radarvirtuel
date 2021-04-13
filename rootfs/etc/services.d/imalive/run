@@ -1,0 +1,55 @@
+#!/usr/bin/with-contenv bash
+#shellcheck shell=bash
+
+APPNAME="$(hostname)/imalive"
+KEEPALIVE=600   # keepalive time in seconds
+
+echo "[$APPNAME][$(date)]: Started as an s6 service"
+
+while true
+do
+    echo "[$APPNAME][$(date)]: ImAlive watchdog will sleep for $KEEPALIVE secs"
+    sleep $KEEPALIVE
+    echo "[$APPNAME][$(date)]: Running ImAlive..."
+
+    host=$HOSTNAME ;
+    set $host;
+    # kx1t: retrieve station name from $FEEDER_KEY docker env variable
+    st=${FEEDER_KEY%%:*}
+    ts=$(date "+%s")
+    #echo " $st Current Time : $ts"
+    STATUS=$(curl -s http://mg2.adsbnetwork.com:/rtools/pyalive.php?stid=$st);
+    if [[ "$(echo $STATUS | grep -o "404")" == "404" ]]; then
+        echo  "[$APPNAME][$(date)]: Server returned 404-Not Found at $ts "
+        exit 2;
+    else
+        if [[ -z  $STATUS ]]; then
+            echo  "[$APPNAME][$(date)]: No Network at $ts ";
+            exit 2;
+        else
+            #	echo " lfey = $STATUS"
+            status="${STATUS%%-*}"
+            rts="${STATUS##*-}"
+            rts=$((rts-10));
+            #	 echo " Ts = $ts $status Rts = $rts";
+
+            if [[ $ts -lt $rts ]]; then
+                # kx1t: using s6 to restart the service instead of the RestartANfeeder.sh script
+                echo "[$APPNAME][$(date)]: Time stamp discrepancu: Restart ANfeeder at date $ts "
+                # kx1t: added warning that Docker image cannot resync NTP
+                echo "[$APPNAME][$(date)]: Warning - Feeder script would like to resync NTP, but this cannot done from without a Docker container."
+                killall /home/py/ANfeeder
+                # /usr/bin/RestartANfeeder.sh majdate;
+            else
+                if [[ "$status" == "ko" ]]; then
+                    # kx1t: using s6 to restart the service
+                    echo "[$APPNAME][$(date)]: Server says that no data is received: Restart ANfeeder at date $ts "
+                    killall /home/py/ANfeeder
+                    # /usr/bin/RestartANfeeder.sh;
+
+                fi;
+            fi;
+        fi;
+    fi;
+
+done

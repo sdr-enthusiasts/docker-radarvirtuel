@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  radarvirtuel:
+    image: kx1t/radarvirtuel
+    tty: true
+    container_name: radarvirtuel
+    hostname: radarvirtuel
+    network: radarvirtuel
+    restart: always
+    environment:
+      - FEEDER_KEY=xxxx:1234321432142314321
+      - SOURCE_HOST=readsb:30002
+      - RV_SERVER=mg22.adsbnetwork.com:50050
+      - VERBOSE=OFF
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,relatime,size=128M
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
