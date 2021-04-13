@@ -9,6 +9,28 @@
 #
 # RadarVirtuel is owned and copyright by Laurent Duval and AdsbNetwork. All rights to that software and
 # services are reserved by the respective owners.
+
+function parse_yaml {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
+true=0
+false=1
+
+
 clear
 cat << "EOM"
             __/\__
@@ -85,9 +107,19 @@ else
     sudo docker-compose version
     echo
     echo "Docker-compose was installed successfully."
-
     read -p "Press ENTER to continue".
     clear
 fi
 
-echo "Now we've made sure that your Docker environment is complete, let's install RadarVirtuel
+echo "Now we've made sure that your Docker environment is complete, let's install RadarVirtuel!
+
+if [[ -f "/opt/adsb/docker-compose.yml" ]]
+then
+    echo "We have detected an existing installation of \"docker-compose\" at /opt/adsb/docker-compose.yml"
+    read -i "Y" -N 1 -p "Do you want to add RadarVirtuel to this stack? (Y/n) " a
+    if [[ "${a,,}" == "y" ]]
+    then
+        # convert the YAML file to variables
+        eval $(parse_yaml /opt/adsb/docker-compose.yml "adsb_")
+        [[ ! -z $adsb_services_readsb_image ]] && readsb=true || readsb=false
+        [[ ! -z $adsb_services_readsb_image ]] && readsb=true || readsb=false

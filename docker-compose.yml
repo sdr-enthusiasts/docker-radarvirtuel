@@ -6,7 +6,6 @@ services:
     tty: true
     container_name: radarvirtuel
     hostname: radarvirtuel
-    network: radarvirtuel
     restart: always
     environment:
       - FEEDER_KEY=xxxx:123456789ABCDEF
