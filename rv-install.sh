@@ -122,4 +122,9 @@ then
         # convert the YAML file to variables
         eval $(parse_yaml /opt/adsb/docker-compose.yml "adsb_")
         [[ ! -z $adsb_services_readsb_image ]] && readsb=true || readsb=false
-        [[ ! -z $adsb_services_readsb_image ]] && readsb=true || readsb=false
+        [[ ! -z $adsb_services_tar1090_image ]] && tar1090=true || tar1090=false
+
+        if [[ "$readsb" == "true" ]]
+        then
+            while read -r line
+            do
