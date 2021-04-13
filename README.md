@@ -22,8 +22,8 @@ If approved, you will receive a key that will look like this:
 ## Stand-alone Installation
 For a stand-alone installation on a machine with an existing ADS-B receiver, you can simply do this:
 ```
-sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb
-wget [[put RAW link to public docker-compose.yml file here]] /opt/adsb/docker-compose.yml
+sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb && cd /opt/adsb
+wget https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml
 ```
 Then, edit the `docker-compose.yml` file and make sure the following 3 parameters are set:
 | Parameter   | Definition                    | Value                     |
@@ -35,7 +35,7 @@ Then, edit the `docker-compose.yml` file and make sure the following 3 parameter
 
 ## Adding to an existing ADS-B Docker Installation
 If you are already running a stack of ADS-B related containers on your machine, you can add `RadarVirtuel` to your existing `docker-compose.yml` file.
-To do so, download the example `docker-compose.yml` file from [here](put RAW link to public docker-compose.yml file here) and add everything starting with `radarvirtuel` to the Services section of your existin `docker-compose.yml`. Configuration is similar to the stand-alone version (see above), with a minor difference for the `SOURCE_HOST` parameter: you can connect that one directly to the container that provides the data.
+To do so, download the example `docker-compose.yml` file from [here](https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml) and add everything starting with `radarvirtuel` to the Services section of your existin `docker-compose.yml`. Configuration is similar to the stand-alone version (see above), with a minor difference for the `SOURCE_HOST` parameter: you can connect that one directly to the container that provides the data.
 
 For example, if your data is provided by the `readsb` container, you can use:
 ```
