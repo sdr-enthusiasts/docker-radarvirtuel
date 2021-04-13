@@ -8,11 +8,14 @@ RadarVirtuel can be reached at:
 - http://www.radarvirtuel.com/
 
 ## Prerequisites
-1. The use of this connector service assumes that you already have a working ADS-B station setup, and that you enabled RAW (=AVR) data output on the application that actively processes your ADS-B data.
-Your ADS-B station can be on the same machine as this application, or on a different machine. Similarly, it doesn't matter if you are using a Containerized or non-Containerized setup.
+1. The use of this connector service assumes that you already have a working ADS-B station setup
+- Ensure you enabled RAW (=AVR) data output on the application that actively processes your ADS-B data.
+- Your ADS-B station can be on the same machine as this application, or on a different machine.
+- Similarly, it doesn't matter if you are using a Containerized or non-Containerized setup.
 
 2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `Docker-RadarVirtuel` on.
-For instructions on installing Docker, and (if you want) installing `readsb` and other ADS-B data collectors, please follow Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/). For this container to work with an existing non-Containerized ADS-B station, please follow at least the 3 chapters in the `Setting up the host system` section.
+- For instructions on installing Docker, and (if you want) installing `readsb` and other ADS-B data collectors, please follow Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
+- For the RadarVirtuel container to work with an existing non-Containerized ADS-B station, please follow at least the 3 chapters in the `Setting up the host system` section.
 
 3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. You can get this key by emailing support@adsbnetwork.com. When doing so, please provide the following information:
 - Your Lat / Lon in decimal degrees
@@ -37,15 +40,16 @@ Then, edit the `docker-compose.yml` file and make sure the following 3 parameter
 
 ## Adding to an existing ADS-B Docker Installation
 If you are already running a stack of ADS-B related containers on your machine, you can add `RadarVirtuel` to your existing `docker-compose.yml` file.
-To do so, download the example `docker-compose.yml` file from [here](https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml) and add everything starting with `radarvirtuel` to the Services section of your existin `docker-compose.yml`. Configuration is similar to the stand-alone version (see above), with a minor difference for the `SOURCE_HOST` parameter: you can connect that one directly to the container that provides the data.
-
-For example, if your data is provided by the `readsb` container, you can use:
+- To do so, download the example `docker-compose.yml` file from [here](https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml) and add everything starting with `radarvirtuel` to the Services section of your existin `docker-compose.yml`.
+- Configuration is similar to the stand-alone version (see above), with a minor difference for the `SOURCE_HOST` parameter: you can connect that one directly to the container that provides the data.
+- For example, if your data is provided by the `readsb` container, you can use:
 ```
 SOURCE_HOST=readsb:30002
 ```
 
 ## Timezone configuration
-The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead. To run the container in UTC, comment out the following lines (using `#`) in `docker-compose.yml`:
+- The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead.
+- To run the container in UTC, comment out the following lines (using `#`) in `docker-compose.yml`:
 ```
 #    volumes:
 #      - "/etc/localtime:/etc/localtime:ro"
