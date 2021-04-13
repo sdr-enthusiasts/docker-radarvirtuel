@@ -30,7 +30,7 @@ Then, edit the `docker-compose.yml` file and make sure the following 3 parameter
 |-------------|-------------------------------|---------------------------|
 | `FEEDER_KEY`  | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.       | `[icao]:[private_key]`        |
 | `SOURCE_HOST` | host and port number of your ADSB receiver. When running stand-alone on your local machine, this should be `${HOSTNAME}`. The value after the `:` is the port number to the RAW or AVR service on the target machine, most probably `30002`.       | ${HOSTNAME}:30002       |
-| `RV_SERVER    | The hostname and the TCP port of the RadarVirtuel server. You should NOT change this unless specifically instructed.       | mg2.adsbnetwork.com:50046       |
+| `RV_SERVER`    | The hostname and the TCP port of the RadarVirtuel server. You should NOT change this unless specifically instructed.       | mg2.adsbnetwork.com:50046       |
 | `VERBOSE` | Write verbose messages to the log | `OFF` (default) / `ON` |
 
 ## Adding to an existing ADS-B Docker Installation
