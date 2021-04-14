@@ -15,15 +15,11 @@ RUN set -x && \
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
     KEPT_PACKAGES+=(gawk) && \
-    # KEPT_PACKAGES+=(pv) && \
     TEMP_PACKAGES+=(gnupg2) && \
     TEMP_PACKAGES+=(file) && \
     KEPT_PACKAGES+=(curl) && \
     KEPT_PACKAGES+=(ca-certificates) && \
     KEPT_PACKAGES+=(procps nano aptitude netcat) && \
-#    TEMP_PACKAGES+=(gcc) && \
-#
-#    KEPT_PACKAGES+=(musl-dev) && \
     KEPT_PACKAGES+=(psmisc) && \
 # Install all these packages:
     apt-get update && \
@@ -46,10 +42,7 @@ RUN set -x && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/* && \
 #
 # Do some stuff for kx1t's convenience:
-# Do some other stuff
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 ENTRYPOINT [ "/init" ]
-
-EXPOSE 80
