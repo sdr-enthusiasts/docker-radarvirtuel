@@ -10,6 +10,33 @@ echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
 echo "[$APPNAME][$(date)] Source host: $SOURCE_HOST"
 echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
 echo "[$APPNAME][$(date)] Verbose: $([[ "$VERBOSE" == "ON" ]] && echo "ON" || echo "OFF")"
+
+# Let's do some checks to make sure the parameters look good, at least format-wise:
+# check FEEDER_KEY
+keyhash="${feeder_key##*:}"
+stid="${feeder_key%%:*}"
+if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
+then
+    echo "|--------------------------------------|"
+    echo "|               STOP !!!!              |"
+    echo "|                                      |"
+    echo "| Your feeder key format is incorrect! |"
+    echo "|                                      |"
+    echo "|--------------------------------------|"
+    echo "It should consist of:"
+    echo "- 4-6 letters or numbers (you entered $stid, which has ${#stid} characters)"
+    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$feeder_key")" != ":" ]] && echo -n "NOT "`enter)"
+    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
+    echo
+    echo "Please edit the FEEDER_KEY parameter your docker-compose.yml file and restart the container."
+    echo "[$APPNAME][$(date)] halted"
+    while :
+    do
+        sleep 1d
+    done
+fi
+
+
 /home/py/ANfeeder $verbose -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST
 a=$?
 echo "[$APPNAME][$(date)] RadarVirtuel exited with exit code $a"

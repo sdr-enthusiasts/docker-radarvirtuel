@@ -113,7 +113,54 @@ fi
 
 echo "Now we've made sure that your Docker environment is complete, let's install RadarVirtuel!
 
-if [[ -f "/opt/adsb/docker-compose.yml" ]]
+echo "Provide the directory name where you want to put the \"docker-compose.yml\" install file for RadarVirtuel"
+echo "If \"docker-compose.yml\" already exists in this directory, we will try to add RadarVirtuel to the existing container stack."
+
+while :
+do
+    read -r -p "Enter your install directory: " -e -i "/opt/adsb" dcdir
+    if [[ "$dcdir" != "" ]]
+    then
+        read -r -p "Creating $dcdir -- correct? [Y/n]" -n 1 b
+        [[ "${b,,}" == "y" ]] && break
+    fi
+done
+
+sudo mkdir -p "$dcdir"
+sudo chmod a+rwx "$dcdir"
+
+echo "What is your RadarVirtuel Feeder Key? This should be a long sequence of characters that look like"
+echo "xxxx:1234567890ABCDEF1234567890ABCDEF or something similar. If you do not have a feeder key, you must apply"
+echo "for one by emailing your name, long/lat, and closest major airport to support@adsbnetwork.com"
+echo
+echo "If you do not have this ready to go, press ENTER below and once you receive the key, add it to the following file:"
+echo "$dcdir/docker-compose.yml"
+echo
+while :
+do
+    read -r -p "Paste your feeder key here: " feeder_key
+    keyhash="${feeder_key##*:}"
+    stid="${feeder_key%%:*}"
+    if [[ "$feeder_key" != "" ]] && [[ "$keyhash" == "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && [[ "${#keyhash}" == "32" ]] && [[ "$stid" == "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] && [[ "${#stid}" -le "6" ]]
+    then
+        break
+    elif [[ "$feeder_key" = "" ]]
+    then
+        echo "Once you receive your feeder key, please edit $dcdir/docker-compose.yml and replace the placeholder FEEDER_KEY variable with your key."
+        break
+    fi
+    echo "Your feeder key appears to be incorrect or incomplete. It should consist of:"
+    echo "- 4-6 letters or numbers (you entered $stid, which has ${#stid} characters)"
+    echo "- : "
+    echo "- 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which"
+    echo "Please try entering it again. If you cannot get it right, you can leave it empty for now and add the key later."
+    echo
+done
+
+
+
+
+if [[ -f "$dcdir/docker-compose.yml" ]]
 then
     echo "We have detected an existing installation of \"docker-compose\" at /opt/adsb/docker-compose.yml"
     read -i "Y" -N 1 -p "Do you want to add RadarVirtuel to this stack? (Y/n) " a
@@ -128,3 +175,5 @@ then
         then
             while read -r line
             do
+
+            done <
