@@ -13,8 +13,8 @@ echo "[$APPNAME][$(date)] Verbose: $([[ "$VERBOSE" == "ON" ]] && echo "ON" || ec
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
-keyhash="${feeder_key##*:}"
-stid="${feeder_key%%:*}"
+keyhash="${FEEDER_KEY##*:}"
+stid="${FEEDER_KEY%%:*}"
 if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
 then
     echo "|--------------------------------------|"
@@ -25,7 +25,7 @@ then
     echo "|--------------------------------------|"
     echo "It should consist of:"
     echo "- 4-6 letters or numbers (you entered $stid, which has ${#stid} characters)"
-    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$feeder_key")" != ":" ]] && echo -n "NOT "`enter)"
+    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$FEEDER_KEY")" != ":" ]] && echo -n "NOT "`enter)"
     echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
     echo
     echo "Please edit the FEEDER_KEY parameter your docker-compose.yml file and restart the container."
@@ -36,7 +36,37 @@ then
     done
 fi
 
+# Now check SOURCE_HOST
+while [[ $(timeout --preserve-status 5 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+do
+    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] While testing the SOURCE_HOST parameter, we ran into trouble:"
+    echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
+	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
+	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
+    echo "Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
+    echo "a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
+    sleep 5
+done
+echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be establised at $SOURCE_HOST ."
+
+
+# Last, check RV_SERVER -- check for UDP connection success
+while [[ $(timeout --preserve-status 5 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+do
+    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] While testing the RV_SERVER parameter, we ran into trouble:"
+    echo "[$APPNAME][$(date)] We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}."
+	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
+	echo "[$APPNAME][$(date)] your internet connection is still working."
+    sleep 5
+done
+echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be establised at $RV_SERVER ."
+echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
+
 
 /home/py/ANfeeder $verbose -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST
 a=$?
-echo "[$APPNAME][$(date)] RadarVirtuel exited with exit code $a"
+echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a"
