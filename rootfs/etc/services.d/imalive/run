@@ -56,13 +56,18 @@ do
     then
         echo "[$APPNAME][$(date)]: You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder
+    else
+        echo "[$APPNAME][$(date)]: $SOURCE_HOST can be reached! "
     fi
+
 
     # check if the RV_SERVER can be reached
     if [[ $(timeout --preserve-status 5 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
     then
         echo "[$APPNAME][$(date)]: The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder
+    else
+        echo "[$APPNAME][$(date)]: $RV_SERVER can be reached! "
     fi
 
 done
