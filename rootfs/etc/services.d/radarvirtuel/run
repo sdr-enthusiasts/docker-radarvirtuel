@@ -49,7 +49,7 @@ do
     sleep 5
 done
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be establised at $SOURCE_HOST ."
+echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST"
 
 
 # Last, check RV_SERVER -- check for UDP connection success
@@ -63,7 +63,7 @@ do
     sleep 5
 done
 echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be establised at $RV_SERVER ."
+echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
 echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
 
 
