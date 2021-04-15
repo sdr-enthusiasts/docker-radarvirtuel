@@ -2,7 +2,7 @@
 #shellcheck shell=bash
 
 APPNAME="$(hostname)/radarvirtuel"
-[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50046"
+[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
 [[ "$VERBOSE" == "ON" ]] && verbose="-v" || verbose=""
 
 echo "[$APPNAME][$(date)] RadarVirtuel was started as an s6 service"
