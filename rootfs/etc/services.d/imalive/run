@@ -51,14 +51,17 @@ do
         [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: Server connection is fine! "
     fi
 
+    # removed this for now -- radarvirtuel/run will also check this, and checking this every 10 minutes
+    # simply makes the readsb container log overflow with complaints about lost connections.
+    #
     # check the SOURCE_HOST
-    if [[ $(timeout --preserve-status 5 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
-    then
-        echo "[$APPNAME][$(date)]: You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
-        killall /home/py/ANfeeder
-    else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: $SOURCE_HOST can be reached! "
-    fi
+    #if [[ $(timeout --preserve-status 5 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+    #then
+    #    echo "[$APPNAME][$(date)]: You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
+    #    killall /home/py/ANfeeder
+    #else
+    #    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: $SOURCE_HOST can be reached! "
+    #fi
 
 
     # check if the RV_SERVER can be reached
