@@ -12,7 +12,7 @@ while true
 do
     [[ "$ALIVE" == "true" ]] && KEEPALIVE=$KEEPALIVE_ALIVE || KEEPALIVE=$KEEPALIVE_DEAD
     [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ImAlive watchdog will sleep for $KEEPALIVE secs"
-    [[ "$ALIVE" != "true" ]] $$ echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
+    [[ "$ALIVE" != "true" ]] && echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
     sleep $KEEPALIVE
     [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Running ImAlive..."
 
