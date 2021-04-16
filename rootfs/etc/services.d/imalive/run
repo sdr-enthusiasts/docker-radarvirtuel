@@ -8,9 +8,9 @@ echo "[$APPNAME][$(date)]: Started as an s6 service"
 
 while true
 do
-    echo "[$APPNAME][$(date)]: ImAlive watchdog will sleep for $KEEPALIVE secs"
+    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: ImAlive watchdog will sleep for $KEEPALIVE secs"
     sleep $KEEPALIVE
-    echo "[$APPNAME][$(date)]: Running ImAlive..."
+    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: Running ImAlive..."
 
     host=$HOSTNAME ;
     set $host;
@@ -48,7 +48,7 @@ do
         killall /home/py/ANfeeder
         # /usr/bin/RestartANfeeder.sh;
     else
-        echo "[$APPNAME][$(date)]: Server connection is fine! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: Server connection is fine! "
     fi
 
     # check the SOURCE_HOST
@@ -57,7 +57,7 @@ do
         echo "[$APPNAME][$(date)]: You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder
     else
-        echo "[$APPNAME][$(date)]: $SOURCE_HOST can be reached! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: $SOURCE_HOST can be reached! "
     fi
 
 
@@ -67,7 +67,7 @@ do
         echo "[$APPNAME][$(date)]: The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder
     else
-        echo "[$APPNAME][$(date)]: $RV_SERVER can be reached! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)]: $RV_SERVER can be reached! "
     fi
 
 done

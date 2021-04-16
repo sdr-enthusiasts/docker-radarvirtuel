@@ -111,8 +111,7 @@ else
     clear
 fi
 
-echo "Now we've made sure that your Docker environment is complete, let's install RadarVirtuel!
-
+echo "Now we have made sure that your Docker environment is complete, let\'s install RadarVirtuel!"
 echo "Provide the directory name where you want to put the \"docker-compose.yml\" install file for RadarVirtuel"
 echo "If \"docker-compose.yml\" already exists in this directory, we will try to add RadarVirtuel to the existing container stack."
 
@@ -151,14 +150,11 @@ do
     fi
     echo "Your feeder key appears to be incorrect or incomplete. It should consist of:"
     echo "- 4-6 letters or numbers (you entered $stid, which has ${#stid} characters)"
-    echo "- : "
-    echo "- 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which"
+    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$feeder_key")" != ":" ]] && echo -n "NOT "`enter)"
+    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
     echo "Please try entering it again. If you cannot get it right, you can leave it empty for now and add the key later."
     echo
 done
-
-
-
 
 if [[ -f "$dcdir/docker-compose.yml" ]]
 then
