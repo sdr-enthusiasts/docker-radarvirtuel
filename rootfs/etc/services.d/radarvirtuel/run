@@ -6,10 +6,10 @@ APPNAME="$(hostname)/radarvirtuel"
 [[ "$VERBOSE" == "ON" ]] && verbose="-v" || verbose=""
 
 echo "[$APPNAME][$(date)] RadarVirtuel was started as an s6 service"
-echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
-echo "[$APPNAME][$(date)] Source host: $SOURCE_HOST"
-echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
-echo "[$APPNAME][$(date)] Verbose: $([[ "$VERBOSE" == "ON" ]] && echo "ON" || echo "OFF")"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Source host: $SOURCE_HOST"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Verbose: ON"
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
@@ -44,12 +44,16 @@ do
     echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
 	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
 	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
-    echo "Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
-    echo "a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
+    echo "[$APPNAME][$(date)]"
+    echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can"
+    echo "[$APPNAME][$(date)] ignore this as it is probably related to your SOURCE_HOST launching."
+    echo "[$APPNAME][$(date)]"
+    echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
+    echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
     sleep 5
 done
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST"
 
 
 # Last, check RV_SERVER -- check for UDP connection success
@@ -62,9 +66,9 @@ do
 	echo "[$APPNAME][$(date)] your internet connection is still working."
     sleep 5
 done
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
-echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
 
 
 /home/py/ANfeeder $verbose -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST
