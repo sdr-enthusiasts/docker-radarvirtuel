@@ -6,6 +6,7 @@ KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD=30     # keepalive timer in seconds if previous run failed
 ALIVE=true
 mkdir -p /run/imalive
+touch /run/imalive/errors
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
 while true
