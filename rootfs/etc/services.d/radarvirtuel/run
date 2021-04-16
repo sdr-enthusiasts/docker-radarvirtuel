@@ -62,7 +62,7 @@ do
 	echo "[$APPNAME][$(date)] your internet connection is still working."
     sleep 5
 done
-echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
 
