@@ -27,9 +27,9 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 - replace `SOURCE_HOST` value:
     - if you are using dump1090[-fa], readsb, or tar1090 WITHOUT docker or in a different docker stack:
         - if it's on the local machine -- use the default value of `${HOSTNAME}:30002`
-        - if it's on a different machine -- put in the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
+        - if it's on a different machine -- use the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
         - (Note - NEVER put "127.0.0.1" as the IP address - this won't work!)
-        - (Also note - make sure to enable and expose RAW (AVR) data on port 30002 on dump1090[-fa] / readsb / tar1090 - see the troubleshooting section for some hints on how to do this)
+        - (Also note - make sure to enable and expose RAW (AVR) data on port 30002 on dump1090[-fa] / readsb / tar1090 - see the troubleshooting section for some hints)
 - if you are using dockerized `readsb` or `tar1090` in the same docker-compose stack, then you can put in the name of the target container. Example: `SOURCE_HOST=readsb:30002`
 3. If you want to add the setup to an existing `docker-compose.yml` stack, simply copy and paste the (edited) radarvirtuel: section into the services: section of your existing `docker-compose.yml` file
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
@@ -41,16 +41,11 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 - Your ADS-B station can be on the same machine as this application, or on a different machine.
 - Similarly, it doesn't matter if you are using a Containerized or non-Containerized setup.
 
-2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `Docker-RadarVirtuel` on.
+2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `RadarVirtuel` on.
 - For instructions on installing Docker, and (if you want) installing `readsb` and other ADS-B data collectors, please follow Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
 - For the RadarVirtuel container to work with an existing non-Containerized ADS-B station, please follow at least the 3 chapters in the `Setting up the host system` section.
 
-3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. You can get this key by emailing support@adsbnetwork.com. When doing so, please provide the following information:
-- Your Lat / Lon in decimal degrees
-- Mention that you are using a Docker setup
-- Your nearest major airport (4 letter ICAO code, for example "KBOS" or "EGGL")
-- A quick introduction to yourself, and how you heard about RadarVirtuel
-- If approved, you will receive a key that will look like this: `xxxx:123456ABCDEF123456ABCDEF`
+3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. See the "What is it?" section above for instructions on how to get this key.
 
 ## Stand-alone Installation
 For a stand-alone installation on a machine with an existing ADS-B receiver, you can simply do this:
