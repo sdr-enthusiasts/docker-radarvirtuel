@@ -27,9 +27,9 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 - replace `SOURCE_HOST` value:
     - if you are using dump1090[-fa], readsb, or tar1090 WITHOUT docker or in a different docker stack:
         - if it's on the local machine -- use the default value of `${HOSTNAME}:30002`
-        - if it's on a different machine -- put in the hostname or IP address of the target machine, for example SOURCE_HOST=192.168.1.10:30002
+        - if it's on a different machine -- put in the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
         - (Note - NEVER put "127.0.0.1" as the IP address - this won't work!)
-        - (Also note - make sure to enable and expose RAW (AVR) data on port 30002 on dump1090[-fa] / readsb / tar1090)
+        - (Also note - make sure to enable and expose RAW (AVR) data on port 30002 on dump1090[-fa] / readsb / tar1090 - see the troubleshooting section for some hints on how to do this)
 - if you are using dockerized `readsb` or `tar1090` in the same docker-compose stack, then you can put in the name of the target container. Example: `SOURCE_HOST=readsb:30002`
 3. If you want to add the setup to an existing `docker-compose.yml` stack, simply copy and paste the (edited) radarvirtuel: section into the services: section of your existing `docker-compose.yml` file
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
