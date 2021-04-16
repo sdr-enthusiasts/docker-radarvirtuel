@@ -44,8 +44,8 @@ do
     echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
 	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
 	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
-    echo "Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
-    echo "a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
+    echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
+    echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
     sleep 5
 done
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
