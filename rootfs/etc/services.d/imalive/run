@@ -11,8 +11,12 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 while true
 do
     [[ "$ALIVE" == "true" ]] && KEEPALIVE=$KEEPALIVE_ALIVE || KEEPALIVE=$KEEPALIVE_DEAD
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ImAlive watchdog will sleep for $KEEPALIVE secs"
-    [[ "$ALIVE" != "true" ]] && echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
+    if [[ "$VERBOSE" == "ON" ]]
+    then
+        echo "[$APPNAME][$(date)] ImAlive watchdog will sleep for $KEEPALIVE secs"
+    else
+        [[ "$ALIVE" != "true" ]] && echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
+    fi
     sleep $KEEPALIVE
     [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Running ImAlive..."
 
