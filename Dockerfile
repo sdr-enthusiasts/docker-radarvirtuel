@@ -23,7 +23,6 @@ RUN set -x && \
     KEPT_PACKAGES+=(psmisc) && \
 # Install all these packages:
     apt-get update && \
-    # apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" --force-yes -y --no-install-recommends  --no-install-suggests\
     apt-get install --force-yes -y \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} && \
@@ -46,3 +45,6 @@ RUN set -x && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 ENTRYPOINT [ "/init" ]
+
+# Add healthcheck
+HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
