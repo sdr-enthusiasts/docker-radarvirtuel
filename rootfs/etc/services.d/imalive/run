@@ -9,6 +9,9 @@ mkdir -p /run/imalive
 touch /run/imalive/errors
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
+# Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
+source /opt/healthchecks-framework/healthchecks.sh
+
 while true
 do
     [[ "$ALIVE" == "true" ]] && KEEPALIVE=$KEEPALIVE_ALIVE || KEEPALIVE=$KEEPALIVE_DEAD
@@ -65,21 +68,19 @@ do
         [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Server connection is fine! "
     fi
 
-    # removed this for now -- radarvirtuel/run will also check this, and checking this every 10 minutes
-    # simply makes the readsb container log overflow with complaints about lost connections.
-    #
-    # check the SOURCE_HOST
-    #if [[ $(timeout --preserve-status 5 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
-    #then
-    #    echo "[$APPNAME][$(date)] You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
-    #    killall /home/py/ANfeeder
-    #else
-    #    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $SOURCE_HOST can be reached! "
-    #fi
+    # check the SOURCE_HOST connection
+    if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
+    then
+        echo "[$APPNAME][$(date)] You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
+        killall /home/py/ANfeeder
+        ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
+    else
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $SOURCE_HOST can be reached! "
+    fi
 
 
     # check if the RV_SERVER can be reached
-    if [[ $(timeout --preserve-status 5 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+    if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:}
     then
         echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder

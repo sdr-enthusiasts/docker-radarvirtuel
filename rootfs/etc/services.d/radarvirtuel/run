@@ -11,6 +11,9 @@ echo "[$APPNAME][$(date)] RadarVirtuel was started as an s6 service"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Verbose: ON"
 
+# Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
+source /opt/healthchecks-framework/healthchecks.sh
+
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
 keyhash="${FEEDER_KEY##*:}"
