@@ -11,8 +11,9 @@ APPNAME="$(hostname)/healthcheck"
 touch /run/imalive/errors
 if [[ "$(cat /run/imalive/errors | wc -l)" -ge "$HEALTHLIMIT" ]]
 then
-    echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(wc -l /run/imalive/errors): UNHEALTHY (>= $HEALTHLIMIT)"
+    echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(cat /run/imalive/errors | wc -l): UNHEALTHY (>= $HEALTHLIMIT)"
     exit 1
 else
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(wc -l /run/imalive/errors): HEALTHY (< $HEALTHLIMIT)"
+    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(cat /run/imalive/errors | wc -l): HEALTHY (< $HEALTHLIMIT)"
 fi
+exit 0
