@@ -9,7 +9,7 @@ HEALTHLIMIT=10
 APPNAME="$(hostname)/healthcheck"
 
 touch /run/imalive/errors
-if [[ "$(wc -l /run/imalive/errors)" -ge "$HEALTHLIMIT" ]]
+if [[ "$(cat /run/imalive/errors | wc -l)" -ge "$HEALTHLIMIT" ]]
 then
     echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(wc -l /run/imalive/errors): UNHEALTHY (>= $HEALTHLIMIT)"
     exit 1
