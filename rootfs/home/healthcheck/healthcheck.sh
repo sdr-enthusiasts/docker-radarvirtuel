@@ -1,13 +1,15 @@
-#!/usr/bin/with-contenv bash
-#shellcheck shell=bash
+#!/usr/bin/env bash
 
-# HEALTHLIMIT is the number of error lines that can be in run/imalive/errors when things go UNHEALTHY
+# Import healthchecks-framework
+source /opt/healthchecks-framework/healthchecks.sh
+
+# HEALTHLIMIT is the number of error lines that can be in run/imalive/errors before things go UNHEALTHY
 HEALTHLIMIT=10
 
 APPNAME="$(hostname)/healthcheck"
 
 touch /run/imalive/errors
-if [[ "$(wc -l /run/imalive/errors)" -ge "$HEALTHLIMIT" ]]
+if [[ "$(cat /run/imalive/errors | wc -l)" -ge "$HEALTHLIMIT" ]]
 then
     echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(wc -l /run/imalive/errors): UNHEALTHY (>= $HEALTHLIMIT)"
     exit 1

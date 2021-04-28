@@ -21,6 +21,9 @@ RUN set -x && \
     KEPT_PACKAGES+=(ca-certificates) && \
     KEPT_PACKAGES+=(procps nano aptitude netcat) && \
     KEPT_PACKAGES+=(psmisc) && \
+# Git and net-tools are needed to install and run @Mikenye's HealthCheck framework
+    TEMP_PACKAGES+=(git) && \
+    KEPT_PACKAGES+=(net-tools) && \
 # Install all these packages:
     apt-get update && \
     apt-get install --force-yes -y \
@@ -30,6 +33,19 @@ RUN set -x && \
 # Link to the arch-appropriate version of ANfeeder:
     [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported!" ; exit 1; } || \
     ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder && \
+#
+# Install @Mikenye's HealthCheck framework (https://github.com/mikenye/docker-healthchecks-framework)
+mkdir -p /opt && \
+git clone \
+      --depth=1 \
+      https://github.com/mikenye/docker-healthchecks-framework.git \
+      /opt/healthchecks-framework \
+      && \
+    rm -rf \
+      /opt/healthchecks-framework/.git* \
+      /opt/healthchecks-framework/*.md \
+      /opt/healthchecks-framework/tests \
+      && \
 #
 # install S6 Overlay
     curl -s https://raw.githubusercontent.com/mikenye/deploy-s6-overlay/master/deploy-s6-overlay.sh | sh && \
