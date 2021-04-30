@@ -4,16 +4,7 @@
 #
 # Copyright 2021 Ramon F. Kolb - licensed under the terms and conditions
 # of the MIT license. The terms and conditions of this license are included with the Github
-# distribution of this package, and are also available here:
-# https://github.com/kx1t/docker-radarvirtuel/
-#
-# RadarVirtuel is owned and copyright by Laurent Duval and AdsbNetwork. All rights to that software and
-# services are reserved by the respective owners.
-
-source yaml2bash.sh
-
-true=0
-false=1
+# distribution of this package.
 
 
 clear
@@ -40,7 +31,7 @@ read -p "Press ENTER to start, or CTRL-C to abort"
 echo -n "Checking for Docker installation... "
 if which docker >/dev/null 2>1
 then
-    echo "found!"
+    echo "found! No need to install..."
 else
     echo "not found!"
     echo "Installing docker, each step may take a while:"
@@ -77,13 +68,13 @@ EOF
     echo "log out and log back into your Raspberry Pi once the installation is all done."
     echo
     read -p "Press ENTER to continue."
-    
+
 fi
 
 echo -n "Checking for Docker-compose installation... "
 if which docker-compose >/dev/null 2>1
 then
-    echo "found!"
+    echo "found! No need to install..."
 else
     echo "not found!"
     echo "Installing Docker-compose... "
