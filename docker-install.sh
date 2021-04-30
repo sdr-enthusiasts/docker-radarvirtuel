@@ -18,7 +18,7 @@ cat << "EOM"
            _/`--`\_
 jgs       (/------\)
 EOM
-
+echo
 echo "Welcome to the Docker Infrastructure installation script"
 echo "We will help you install Docker and Docker-compose."
 echo "and then help you with your configuration."
