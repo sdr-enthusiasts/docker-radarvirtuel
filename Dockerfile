@@ -55,9 +55,9 @@ pushd /git && \
     git clone clone https://github.com/mutability/mlat-client.git && \
     cd mlat-client && \
     dpkg-buildpackage -b -uc && \
-    cd ..
+    cd .. && \
     dpkg -i mlat-client_*.deb && \
-popg && \
+popd && \
 rm -rf /git && \
 
 #
