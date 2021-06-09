@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-MLAT_CMD="/usr/binmlat-client"
+MLAT_CMD="/usr/bin/mlat-client"
 
 [[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=dump1090
 
