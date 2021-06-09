@@ -4,7 +4,7 @@ FROM debian:stable-slim
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git" \
     PRIVATE_MLAT="false" \
-    MLAT_INPUT_TYPE="dump1090" \
+    MLAT_INPUT_TYPE="dump1090"
 
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
