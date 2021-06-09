@@ -38,7 +38,7 @@ else
     echo -n "Updating repositories... "
     sudo apt-get update -qq >/dev/null
     echo -n "Ensuring dependencies are installed... "
-    sudo apt-get install -y curl uidmap slirp4netns >/dev/null
+    sudo apt-get install -qq -y curl uidmap slirp4netns >/dev/null
     echo -n "Getting docker..."
     curl -fsSL https://get.docker.com -o get-docker.sh
     echo "Installing Docker... "
