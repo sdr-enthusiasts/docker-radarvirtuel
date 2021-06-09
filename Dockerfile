@@ -52,7 +52,7 @@ RUN set -x && \
 # Compile and Install the mlat_client
 mkdir -p /git && \
 pushd /git && \
-    git clone clone https://github.com/mutability/mlat-client.git && \
+    git clone https://github.com/mutability/mlat-client.git && \
     cd mlat-client && \
     dpkg-buildpackage -b -uc && \
     cd .. && \
