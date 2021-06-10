@@ -8,6 +8,31 @@ MLAT_CMD="/usr/bin/mlat-client"
 
 [[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=dump1090
 
+if [[ "${MLAT_HOST}" == "" ]]
+then
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] ATTENTION RADARVIRTUEL USERS!"
+    echo "[$APPNAME][$(date)] Please update your docker-compose.yml with MLAT parameters."
+    echo "[$APPNAME][$(date)] This is a NEW FEATURE and we encourage you to use it!"
+    echo "[$APPNAME][$(date)] "
+    echo "[$APPNAME][$(date)] Here's how: add the following parameter to the environment section of"
+    echo "[$APPNAME][$(date)] \"radarvirtuel:\""
+    cat <<EOF
+    - MLAT_SERVER=mlat.adsbnetwork.com:50000        # don't change this unless someone tells you to
+    - MLAT_HOST=${HOSTNAME}:30005                   # This is the same hostname as for SOURCE_HOST, but now using port 30005
+    - LAT=42.123456789                              # This is your station latitude
+    - LON=-71.123456789                             # This is your station longtude
+    - ALT=40ft                                      # This is your station altitude - put "ft" for feet or "m" for meters
+EOF
+    echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] halted: MLAT is not configured correcty and will be disabled for now."
+    while :
+    do
+        sleep 1d
+    done
+fi
+
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
 # MLAT_PARAM+=(--no-udp)
 MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
