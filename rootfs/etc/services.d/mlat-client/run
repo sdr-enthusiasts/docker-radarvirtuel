@@ -27,7 +27,7 @@ then
 EOF
     echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] halted: MLAT is not configured correcty and will be disabled for now."
+    echo "[$APPNAME][$(date)] MLAT halted: not configured correctly"
     while :
     do
         sleep 1d
