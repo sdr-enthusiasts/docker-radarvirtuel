@@ -37,7 +37,6 @@ RUN set -x && \
     TEMP_PACKAGES+=(python3-wheel) && \
     TEMP_PACKAGES+=(python3-setuptools) && \
     TEMP_PACKAGES+=(python-distutils-extra) && \
-    TEMP_PACKAGES+=(python3) && \
 #
 # Install all these packages:
     apt-get update && \
