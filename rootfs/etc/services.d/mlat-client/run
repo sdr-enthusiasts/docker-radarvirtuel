@@ -23,6 +23,4 @@ fi
 
 set -eo pipefail
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
-[[ "$VERBOSE" == "ON" ]] && exec \
-    "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | awk -v app="$APPNAME" -v d="$(date)" '{print "[" app "][" d "] " $1}' || \
-    "${MLAT_CMD}" "${MLAT_PARAM[@]}" &1>/dev/null
+exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 # | awk -v app="$APPNAME" -v d="$(date)" '{print "[" app "][" d "] " $1}'
