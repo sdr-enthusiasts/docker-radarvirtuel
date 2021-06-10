@@ -42,30 +42,26 @@ RUN set -x && \
     apt-get install --force-yes -y \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} && \
-#
-# Link to the arch-appropriate version of ANfeeder:
-    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported!" ; exit 1; } || \
-    ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder && \
-#
+
 # Compile and Install the mlat_client
-mkdir -p /git && \
-pushd /git && \
-    git clone https://github.com/mutability/mlat-client.git && \
-    cd mlat-client && \
-    dpkg-buildpackage -b -uc && \
-    cd .. && \
-    dpkg -i mlat-client_*.deb && \
-popd && \
-#rm -rf /git && \
+    mkdir -p /git && \
+    pushd /git && \
+        git clone https://github.com/mutability/mlat-client.git && \
+        cd mlat-client && \
+        dpkg-buildpackage -b -uc && \
+        cd .. && \
+        dpkg -i mlat-client_*.deb && \
+    popd && \
+    rm -rf /git && \
 
 #
 # Install @Mikenye's HealthCheck framework (https://github.com/mikenye/docker-healthchecks-framework)
-mkdir -p /opt && \
-git clone \
-      --depth=1 \
-      https://github.com/mikenye/docker-healthchecks-framework.git \
-      /opt/healthchecks-framework \
-      && \
+    mkdir -p /opt && \
+    git clone \
+          --depth=1 \
+          https://github.com/mikenye/docker-healthchecks-framework.git \
+          /opt/healthchecks-framework \
+          && \
     rm -rf \
       /opt/healthchecks-framework/.git* \
       /opt/healthchecks-framework/*.md \
@@ -87,6 +83,13 @@ git clone \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 COPY rootfs/ /
+
+RUN set -x && \
+#
+# Link to the arch-appropriate version of ANfeeder:
+    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported!" ; exit 1; } || \
+    ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder && \
+#
 
 ENTRYPOINT [ "/init" ]
 
