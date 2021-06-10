@@ -58,7 +58,7 @@ pushd /git && \
     cd .. && \
     dpkg -i mlat-client_*.deb && \
 popd && \
-rm -rf /git && \
+#rm -rf /git && \
 
 #
 # Install @Mikenye's HealthCheck framework (https://github.com/mikenye/docker-healthchecks-framework)
@@ -82,7 +82,7 @@ git clone \
     apt-get remove -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -y && \
     apt-get clean -y && \
-    rm -rf /src /tmp/* /var/lib/apt/lists/* /git && \
+    rm -rf /src /tmp/* /var/lib/apt/lists/* && \
 #
 # Do some stuff for kx1t's convenience:
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
