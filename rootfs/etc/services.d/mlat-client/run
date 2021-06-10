@@ -20,7 +20,7 @@ then
     echo "[$APPNAME][$(date)] \"radarvirtuel:\""
     cat <<EOF
     - MLAT_SERVER=mlat.adsbnetwork.com:50000    # Don't change this unless someone tells you to
-    - MLAT_HOST=${HOSTNAME}:30005               # This is the same hostname as for SOURCE_HOST, but now using port 30005
+    - MLAT_HOST=\${HOSTNAME}:30005               # This is the same hostname as for SOURCE_HOST, but now using port 30005
     - LAT=42.123456789                          # This is your station latitude
     - LON=-71.123456789                         # This is your station longtude
     - ALT=40ft                                  # This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters
