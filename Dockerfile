@@ -6,13 +6,12 @@ ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
 
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Copy needs to be here to prevent github actions from failing.
 # SSL Certs are pre-loaded into the rootfs via a job in github action:
 # See: "Copy CA Certificates from GitHub Runner to Image rootfs" in deploy.yml
-COPY rootfs/ /
+COPY root_certs/ /
 
 RUN set -x && \
 # define packages needed for installation and general management of the container:
@@ -86,6 +85,8 @@ git clone \
 # Do some stuff for kx1t's convenience:
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
+
+COPY rootfs/ /
 
 ENTRYPOINT [ "/init" ]
 

@@ -1,6 +1,9 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+APPNAME="$(hostname)/mlat_client"
+echo "[$APPNAME][$(date)] Started as an s6 service"
+
 MLAT_CMD="/usr/bin/mlat-client"
 
 [[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=dump1090
@@ -19,6 +22,7 @@ if [[ ${PRIVATE_MLAT} == true ]]; then
 fi
 
 set -eo pipefail
-echo "Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}"
-exec \
-    "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
+[[ "$VERBOSE" == "ON" ]] && exec \
+    "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | awk -v app="$APPNAME" -v d="$(date)" '{print "[" app "][" d "] " $1}' || \
+    "${MLAT_CMD}" "${MLAT_PARAM[@]}" &1>/dev/null
