@@ -57,6 +57,14 @@ else
 }
 EOF
     sudo chmod a+r /etc/docker/daemon.json
+    # enable docker to run rootless:
+    dockerd-rootless-setuptool.sh install
+    echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
+    echo 'export DOCKER_HOST=unix:///run/user/1001/docker.sock' >> ~/.bashrc
+    export PATH=/usr/bin:$PATH
+    export DOCKER_HOST=unix:///run/user/1001/docker.sock
+
+
     sudo service docker restart
     echo "Now let's run a test container:"
     sudo docker run --rm hello-world
