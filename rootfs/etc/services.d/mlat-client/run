@@ -6,7 +6,7 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 
 MLAT_CMD="/usr/bin/mlat-client"
 
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=dump1090
+[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=auto
 
 if [[ "${MLAT_HOST}" == "" ]]
 then
@@ -28,10 +28,7 @@ EOF
     echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
     echo "[$APPNAME][$(date)] MLAT halted: not configured correctly"
-    while :
-    do
-        sleep 1d
-    done
+    sleep infinity
 fi
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")

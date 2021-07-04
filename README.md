@@ -63,7 +63,7 @@ Then, edit the `docker-compose.yml` file and make sure the following 3 parameter
 | `VERBOSE` | Write verbose messages to the log | `OFF` (default) / `ON` |
 | `MLAT_SERVER` | RV MLAT server address and port - do not change unless instructed to | mlat.adsbnetwork.com:50000 |
 | `MLAT_HOST` | This is the same hostname as for SOURCE_HOST, but now using port 30005 | `${HOSTNAME}:30005`       |
-| `MLAT_INPUT_TYPE` | Optional param to define MLAT Input Type - do not change unless instructed to |  `auto` / `dump1090` (default) / `beast` / `radarcape_12mhz` / `radarcape_gps` \ `radarcape` \ `sbs` \ `avrmlat` |
+| `MLAT_INPUT_TYPE` | Optional param to define MLAT Input Type - do not change unless instructed to |  `auto` (default) / `dump1090` / `beast` / `radarcape_12mhz` / `radarcape_gps` \ `radarcape` \ `sbs` \ `avrmlat` |
 | `LAT` | This is your station latitude (used with MLAT) | |
 | `LON` | This is your station longitude (used with MLAT) | |
 | `ALT` | This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters | |
@@ -79,7 +79,7 @@ SOURCE_HOST=readsb:30002
 ```
 
 ## MLAT Configuration
-By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `MLAT_HOST` to empty. You will see a message in the logs encouraging to configure MLAT, followed by a message saying that MLAT is disabled. 
+By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `MLAT_HOST` to empty. You will see a message in the logs encouraging to configure MLAT, followed by a message saying that MLAT is disabled.
 
 ## Timezone configuration
 - The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead.
