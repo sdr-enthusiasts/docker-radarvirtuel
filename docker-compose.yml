@@ -11,6 +11,11 @@ services:
       - FEEDER_KEY=xxxx:123456789ABCDEF
       - SOURCE_HOST=${HOSTNAME}:30002
       - RV_SERVER=mg2.adsbnetwork.com:50050
+      - MLAT_SERVER=mlat.adsbnetwork.com:50000
+      - MLAT_HOST=${HOSTNAME}:30005
+      - LAT=42.123456789
+      - LON=-71.123456789
+      - ALT=40ft
       - VERBOSE=OFF
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,relatime,size=128M
