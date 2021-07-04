@@ -37,7 +37,7 @@ jobs:
       # After many hours of troubleshooting, the workaround is to pre-load the image's rootfs with the CA certificates from the runner.
       # This problem may go away in future.
       -
-        name: Copy CA Certificates from GitHub Runner to Image rootfs
+        name: Copy CA Certificates from GitHub Runner to Image root_certs directory
         run: |
           ls -la /etc/ssl/certs/
           mkdir -p ./root_certs/etc/ssl/certs
