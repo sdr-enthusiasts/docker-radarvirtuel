@@ -44,6 +44,7 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `RadarVirtuel` on.
 - For instructions on installing Docker, and (if you want) installing `readsb` and other ADS-B data collectors, please follow Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
 - For the RadarVirtuel container to work with an existing non-Containerized ADS-B station, please follow at least the 3 chapters in the `Setting up the host system` section.
+- If you need to install `Docker` and/or `Docker-compose` on your machine, you can use this handy script: ```wget -q https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-install.sh && . ./docker-install.sh```
 
 3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. See the "What is it?" section above for instructions on how to get this key.
 
@@ -60,6 +61,13 @@ Then, edit the `docker-compose.yml` file and make sure the following 3 parameter
 | `SOURCE_HOST` | host and port number of your ADSB receiver. When running stand-alone on your local machine, this should be `${HOSTNAME}`. The value after the `:` is the port number to the RAW or AVR service on the target machine, most probably `30002`.       | `${HOSTNAME}:30002`       |
 | `RV_SERVER`    | The hostname and the TCP port of the RadarVirtuel server. You should NOT change this unless specifically instructed.       | `mg2.adsbnetwork.com:50050`       |
 | `VERBOSE` | Write verbose messages to the log | `OFF` (default) / `ON` |
+| `MLAT_SERVER` | RV MLAT server address and port - do not change unless instructed to | mlat.adsbnetwork.com:50000 |
+| `MLAT_HOST` | This is the same hostname as for SOURCE_HOST, but now using port 30005 | `${HOSTNAME}:30005`       |
+| `MLAT_INPUT_TYPE` | Optional param to define MLAT Input Type - do not change unless instructed to |  `auto` / `dump1090` (default) / `beast` / `radarcape_12mhz` / `radarcape_gps` \ `radarcape` \ `sbs` \ `avrmlat` |
+| `LAT` | This is your station latitude (used with MLAT) | |
+| `LON` | This is your station longitude (used with MLAT) | |
+| `ALT` | This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters | |
+
 
 ## Adding to an existing ADS-B Docker Installation
 If you are already running a stack of ADS-B related containers on your machine, you can add `RadarVirtuel` to your existing `docker-compose.yml` file.
@@ -69,6 +77,9 @@ If you are already running a stack of ADS-B related containers on your machine, 
 ```
 SOURCE_HOST=readsb:30002
 ```
+
+## MLAT Configuration
+By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `MLAT_HOST` to empty. You will see a message in the logs encouraging to configure MLAT, followed by a message saying that MLAT is disabled. 
 
 ## Timezone configuration
 - The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead.
