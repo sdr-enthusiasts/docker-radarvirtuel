@@ -8,14 +8,18 @@ services:
     hostname: radarvirtuel
     restart: always
     environment:
+      # Basic RadarVirtuel params:
       - FEEDER_KEY=xxxx:123456789ABCDEF
       - SOURCE_HOST=${HOSTNAME}:30002
       - RV_SERVER=mg2.adsbnetwork.com:50050
+      # MLAT related params; set "MLAT_HOST=" (empty) to disable MLAT
+      # ALT is altitude above ground in "m" or "ft"
       - MLAT_SERVER=mlat.adsbnetwork.com:50000
       - MLAT_HOST=${HOSTNAME}:30005
       - LAT=42.123456789
       - LON=-71.123456789
       - ALT=40ft
+      # Logging related params:
       - VERBOSE=OFF
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,relatime,size=128M
