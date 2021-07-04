@@ -54,7 +54,7 @@ For a stand-alone installation on a machine with an existing ADS-B receiver, you
 sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb && cd /opt/adsb
 wget https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml
 ```
-Then, edit the `docker-compose.yml` file and make sure the following 3 parameters are set:
+Then, edit the `docker-compose.yml` file and make sure the following parameters are set:
 | Parameter   | Definition                    | Value                     |
 |-------------|-------------------------------|---------------------------|
 | `FEEDER_KEY`  | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.       | `[icao]:[private_key]`        |
