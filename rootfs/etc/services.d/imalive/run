@@ -80,7 +80,7 @@ do
 
 
     # check if the RV_SERVER can be reached
-    if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:}
+    if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
     then
         echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder at date $ts"
         killall /home/py/ANfeeder

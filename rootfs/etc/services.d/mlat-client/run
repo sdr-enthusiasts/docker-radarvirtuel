@@ -1,0 +1,53 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+APPNAME="$(hostname)/mlat_client"
+echo "[$APPNAME][$(date)] Started as an s6 service"
+
+MLAT_CMD="/usr/bin/mlat-client"
+
+[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=dump1090
+
+if [[ "${MLAT_HOST}" == "" ]]
+then
+    sleep 15    # let all other processes write to the logs before we do
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] ATTENTION RADARVIRTUEL USERS!"
+    echo "[$APPNAME][$(date)] Please update your docker-compose.yml with MLAT parameters."
+    echo "[$APPNAME][$(date)] This is a NEW FEATURE and we encourage you to use it!"
+    echo "[$APPNAME][$(date)] "
+    echo "[$APPNAME][$(date)] Here's how: add the following parameter to the environment section of"
+    echo "[$APPNAME][$(date)] \"radarvirtuel:\""
+    cat <<EOF
+    - MLAT_SERVER=mlat.adsbnetwork.com:50000    # Don't change this unless someone tells you to
+    - MLAT_HOST=\${HOSTNAME}:30005               # This is the same hostname as for SOURCE_HOST, but now using port 30005
+    - LAT=42.123456789                          # This is your station latitude
+    - LON=-71.123456789                         # This is your station longtude
+    - ALT=40ft                                  # This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters
+EOF
+    echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] MLAT halted: not configured correctly"
+    while :
+    do
+        sleep 1d
+    done
+fi
+
+MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
+# MLAT_PARAM+=(--no-udp)
+MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
+MLAT_PARAM+=(--server "${MLAT_SERVER}")
+MLAT_PARAM+=(--lat "${LAT}")
+MLAT_PARAM+=(--lon "${LON}")
+MLAT_PARAM+=(--alt "${ALT}")
+MLAT_PARAM+=(--results beast,listen,30105)
+MLAT_PARAM+=(--user "${FEEDER_KEY}")
+if [[ ${PRIVATE_MLAT} == true ]]; then
+    MLAT_PARAM+=(--privacy)
+fi
+
+set -eo pipefail
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
+[[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}'
+[[ "$VERBOSE" == "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}'

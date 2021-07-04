@@ -10,22 +10,7 @@
 # RadarVirtuel is owned and copyright by Laurent Duval and AdsbNetwork. All rights to that software and
 # services are reserved by the respective owners.
 
-function parse_yaml {
-   local prefix=$2
-   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
-   sed -ne "s|^\($s\):|\1|" \
-        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
-        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-   awk -F$fs '{
-      indent = length($1)/2;
-      vname[indent] = $2;
-      for (i in vname) {if (i > indent) {delete vname[i]}}
-      if (length($3) > 0) {
-         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
-      }
-   }'
-}
+source yaml2bash.sh
 
 true=0
 false=1
@@ -118,6 +103,7 @@ echo "If \"docker-compose.yml\" already exists in this directory, we will try to
 while :
 do
     read -r -p "Enter your install directory: " -e -i "/opt/adsb" dcdir
+    [[ -d "$dcdir" ]] && break
     if [[ "$dcdir" != "" ]]
     then
         read -r -p "Creating $dcdir -- correct? [Y/n]" -n 1 b
@@ -132,7 +118,7 @@ echo "What is your RadarVirtuel Feeder Key? This should be a long sequence of ch
 echo "xxxx:1234567890ABCDEF1234567890ABCDEF or something similar. If you do not have a feeder key, you must apply"
 echo "for one by emailing your name, long/lat, and closest major airport to support@adsbnetwork.com"
 echo
-echo "If you do not have this ready to go, press ENTER below and once you receive the key, add it to the following file:"
+echo "If you do not have this ready to go, press ENTER below and once you receive the key, add it to the FEEDER_KEY variable in the following file:"
 echo "$dcdir/docker-compose.yml"
 echo
 while :
@@ -158,7 +144,7 @@ done
 
 if [[ -f "$dcdir/docker-compose.yml" ]]
 then
-    echo "We have detected an existing installation of \"docker-compose\" at /opt/adsb/docker-compose.yml"
+    echo "We have detected an existing installation of \"docker-compose\" at $dcdir/docker-compose.yml"
     read -i "Y" -N 1 -p "Do you want to add RadarVirtuel to this stack? (Y/n) " a
     if [[ "${a,,}" == "y" ]]
     then
@@ -167,9 +153,45 @@ then
         [[ ! -z $adsb_services_readsb_image ]] && readsb=true || readsb=false
         [[ ! -z $adsb_services_tar1090_image ]] && tar1090=true || tar1090=false
 
-        if [[ "$readsb" == "true" ]]
+        # only add stuff if there is not already a RadarVirtuel section
+        if [[ -z $adsb_services_radarvirtuel_image ]]
         then
-            while read -r line
-            do
+            # there's no RadarVirtuel section and we can add one
+            # Now, if there's both a READSB section and a TAR1090 section, figure out which one to hook into:
+            if [[ "$readsb" == "true" ]] && [[ "$tar1090" == "true" ]]
+            then
+                echo
+                echo "We've detected an installation of both TAR1090 and READSB in your stack."
+                echo "We recommend feeding RadarVirtuel from TAR1090 as it may include additional data sources"
+                echo "Please choose which of them you want to feed from:"
+                read -i "1" -N 1 -p  "1. TAR1090       2. READSB     [1]: " target
+                [[ "$target" == "1" ]] && readsb=false || tar1090=false
+            fi
 
-            done <
+            # create a new docker-compose.yml file
+            sudo rm -f $dcdir/new-docker-compose.yml
+            sudo touch $dcdir/new-docker-compose.yml
+            sudo chmod a+rw $dcdir/new-docker-compose.yml
+
+            if [[ "$readsb" == "true" ]]
+            then
+                # First figure out if the READSB_NET_RAW_OUTPUT_PORT param is already set
+                source=""
+                port=""
+                for a in {0..20}
+                do
+                    eval x='$'input_services_readsb_environment_$a
+                    if [[ "${x%%=*}" == "READSB_NET_RAW_OUTPUT_PORT" ]]
+                    then
+                        source="found"
+                        port=${x##*=}
+                        break
+                    fi
+                done
+
+                [[
+
+
+            fi
+        fi
+    fi
