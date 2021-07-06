@@ -35,7 +35,7 @@ EOF
 fi
 
 sleep 15    # let all other processes start before we do
-while ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${MLAT_HOST%%:*}) ${MLAT_HOST##*:} >/dev/null 2>&1
+while [[ $(timeout --preserve-status 5 netcat -z -v ${MLAT_HOST%%:*} ${MLAT_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
 do
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
     echo "[$APPNAME][$(date)] MLAT host ${MLAT_HOST} cannot be reached."
@@ -44,7 +44,7 @@ do
     sleep 15
 done
 
-while ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${MLAT_SERVER%%:*}) ${MLAT_SERVER##*:} >/dev/null 2>&1
+while [[ $(timeout --preserve-status 5 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
 do
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
     echo "[$APPNAME][$(date)] MLAT server ${MLAT_SERVER} cannot be reached."
