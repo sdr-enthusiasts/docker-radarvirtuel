@@ -20,5 +20,5 @@ cp -P /etc/ssl/certs/*.pem ./root_certs/etc/ssl/certs
 cp -P /usr/share/ca-certificates/mozilla/*.crt ./root_certs/usr/share/ca-certificates/mozilla
 
 git pull
-docker buildx build --compress --push $2 --platform linux/armhf,linux/arm64 --tag kx1t/radarvirtuel:$TAG .
+docker buildx build --compress --push $2 --platform linux/armhf,linux/arm64,linux/amd64 --tag kx1t/radarvirtuel:$TAG .
 popd
