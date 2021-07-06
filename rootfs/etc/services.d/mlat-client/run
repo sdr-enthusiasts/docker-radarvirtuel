@@ -6,6 +6,9 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 
 MLAT_CMD="/usr/bin/mlat-client"
 
+# Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
+source /opt/healthchecks-framework/healthchecks.sh
+
 [[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=auto
 
 if [[ "${MLAT_HOST}" == "" ]]
@@ -30,6 +33,24 @@ EOF
     echo "[$APPNAME][$(date)] MLAT not started: configured incorrectly"
     sleep infinity
 fi
+
+sleep 15    # let all other processes start before we do
+while ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${MLAT_HOST%%:*}) ${MLAT_HOST##*:} >/dev/null 2>&1
+do
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] MLAT host ${MLAT_HOST} cannot be reached."
+    echo "[$APPNAME][$(date)] If this message keeps repeating, please make sure that the MLAT_HOST"
+    echo "[$APPNAME][$(date)] is configured correctly, and that the MLAT host is available."
+    sleep 15
+done
+
+while ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${MLAT_SERVER%%:*}) ${MLAT_SERVER##*:} >/dev/null 2>&1
+do
+    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
+    echo "[$APPNAME][$(date)] MLAT server ${MLAT_SERVER} cannot be reached."
+    echo "[$APPNAME][$(date)] We will try again in 10 minutes"
+    sleep 10m
+done
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
 # MLAT_PARAM+=(--no-udp)
