@@ -64,6 +64,7 @@ Then, edit the `docker-compose.yml` file and make sure the following parameters 
 | `MLAT_SERVER` | RV MLAT server address and port - do not change unless instructed to | mlat.adsbnetwork.com:50000 |
 | `MLAT_HOST` | This is the same hostname as for SOURCE_HOST, but now using port 30005 | `${HOSTNAME}:30005`       |
 | `MLAT_INPUT_TYPE` | Optional param to define MLAT Input Type - do not change unless instructed to |  `auto` (default) / `dump1090` / `beast` / `radarcape_12mhz` / `radarcape_gps` / `radarcape` / `sbs` / `avrmlat` |
+| `MLAT_RESULTS` | Optional param to define how to make the MLAT results available. Value is used with the `--results` option of `mlat-client`. For valid options, do `docker exec -t radarvirtuel mlat-client --help` | `beast,listen,30105` (default) |
 | `LAT` | This is your station latitude (used with MLAT) | |
 | `LON` | This is your station longitude (used with MLAT) | |
 | `ALT` | This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters | |
