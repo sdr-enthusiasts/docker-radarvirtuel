@@ -28,7 +28,7 @@ echo "If you haven't added your current login to the \"sudoer\" list,"
 echo "you may be asked for your password at various times during the installation."
 echo
 read -p "Press ENTER to start, or CTRL-C to abort"
-echo -n "Checking for Docker installation... "
+echo -n "Checking for an existing Docker installation... "
 if which docker >/dev/null 2>1
 then
     echo "found! No need to install..."
