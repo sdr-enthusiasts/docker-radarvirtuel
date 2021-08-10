@@ -60,9 +60,9 @@ EOF
     # enable docker to run rootless:
     dockerd-rootless-setuptool.sh install
     echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
-    echo 'export DOCKER_HOST=unix:///run/user/1001/docker.sock' >> ~/.bashrc
+    echo "export DOCKER_HOST=unix:///run/user/$(id -u ${username})/docker.sock" >> ~/.bashrc
     export PATH=/usr/bin:$PATH
-    export DOCKER_HOST=unix:///run/user/1001/docker.sock
+    export DOCKER_HOST=unix:///run/user/$(id -u ${username})/docker.sock
 
 
     sudo service docker restart
