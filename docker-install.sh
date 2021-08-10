@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 # DOCKER-INSTALL.SH -- Installation script for the Docker infrastructure on a Raspbian or Ubuntu system
 # Usage: ./docker-install.sh or `wget -q https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-install.sh && . ./docker-install.sh`
 #
