@@ -27,7 +27,33 @@ echo "Note - this scripts makes use of \"sudo\" to install Docker."
 echo "If you haven't added your current login to the \"sudoer\" list,"
 echo "you may be asked for your password at various times during the installation."
 echo
-read -p "Press ENTER to start, or CTRL-C to abort"
+read -p "Press ENTER to start, CTRL-C to abort, or \"?\" to get help on how to add your login to the \"sudoers\" list > " text
+if [[ "$text" == "?" ]]
+then
+    echo
+    echo "Adding your login name, \"${USER}\", to \"sudoers\" will enable you to use \"sudo\" without having to type your password every time."
+    echo "You may be asked to enter your password once or twice below. We promise, this is the last time."
+    echo
+    read -p "Should we do this now? If you choose \"no\", you can always to it later by yourself [Y/n] > " -n 1 text
+    if [[ "${text,,}" != "n" ]]
+    then
+        echo
+        echo -n "Adding user \"${USER}\" to the \'sudo\' group... "
+        sudo usermod -aG sudo ${USER}
+        echo "done!"
+        echo -n "Ensuring that user \"${USER}\" can run \'sudo\' without entering a password... "
+        sudo echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+        echo "done!"
+        echo
+        echo "You should be ready to go now. If it continues to ask for a password below, do the following:"
+        echo "- press CTRL-c to stop the execution of this install script"
+        echo "- type \"exit\" to log out from your machine"
+        echo "- log in again"
+        echo "- re-run this script using the same command as you did before"
+        echo
+    fi
+fi
+echo "Starting the installation of Docker."
 echo -n "Checking for an existing Docker installation... "
 if which docker >/dev/null 2>1
 then
@@ -127,11 +153,16 @@ EOM
     sudo rmmod rtl2832 2>/dev/null
     sudo rmmod rtl8xxxu 2>/dev/null
     sudo rmmod rtl2838 2>/dev/null
+    echo "Enabling the use of priviledged ports by Docker... "
+    sudo setcap cap_net_bind_service=ep $(which rootlesskit)
     echo "Done!"
 popd
 rm -rf $tmpdir
-    echo
-    echo "We've installed these packages, and we think they may be useful for you in the future. So we will leave them installed:"
-    echo "git, rtl-sdr"
-    echo "If you don\'t want them, feel free to uninstall them using this command:"
-    echo "sudo apt-get remove git rtl-sdr"
+echo
+echo "We\'ve installed these packages, and we think they may be useful for you in the future. So we will leave them installed:"
+echo "git, rtl-sdr"
+echo "If you don\'t want them, feel free to uninstall them using this command:"
+echo "sudo apt-get remove git rtl-sdr"
+echo
+echo "To make sure that everything works OK, you should reboot your machine."
+read -p "Press ENTER to reboot, or CTRL-C to abort"
