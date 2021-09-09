@@ -27,7 +27,33 @@ echo "Note - this scripts makes use of \"sudo\" to install Docker."
 echo "If you haven't added your current login to the \"sudoer\" list,"
 echo "you may be asked for your password at various times during the installation."
 echo
-read -p "Press ENTER to start, or CTRL-C to abort"
+read -p "Press ENTER to start, CTRL-C to abort, or \"?\" to get help on how to add your login to the \"sudoers\" list > " text
+if [[ "$text" == "?" ]]
+then
+    echo
+    echo "Adding your login name, \"${USER}\", to \"sudoers\" will enable you to use \"sudo\" without having to type your password every time."
+    echo "You may be asked to enter your password once or twice below. We promise, this is the last time."
+    echo
+    read -p "Should we do this now? If you choose \"no\", you can always to it later by yourself [Y/n] > " -n 1 text
+    if [[ "${text,,}" != "n" ]]
+    then
+        echo
+        echo -n "Adding user \"${USER}\" to the \'sudo\' group... "
+        sudo usermod -aG sudo ${USER}
+        echo "done!"
+        echo -n "Ensuring that user \"${USER}\" can run \'sudo\' without entering a password... "
+        sudo echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+        echo "done!"
+        echo
+        echo "You should be ready to go now. If it continues to ask for a password below, do the following:"
+        echo "- press CTRL-c to stop the execution of this install script"
+        echo "- type \"exit\" to log out from your machine"
+        echo "- log in again"
+        echo "- re-run this script using the same command as you did before"
+        echo
+    fi
+fi
+echo "Starting the installation of Docker."
 echo -n "Checking for an existing Docker installation... "
 if which docker >/dev/null 2>1
 then
@@ -64,7 +90,6 @@ EOF
     export PATH=/usr/bin:$PATH
     export DOCKER_HOST=unix:///run/user/$(id -u ${username})/docker.sock
 
-
     sudo service docker restart
     echo "Now let's run a test container:"
     sudo docker run --rm hello-world
@@ -76,7 +101,6 @@ EOF
     echo "log out and log back into your Raspberry Pi once the installation is all done."
     echo
     read -p "Press ENTER to continue."
-
 fi
 
 echo -n "Checking for Docker-compose installation... "
@@ -92,3 +116,53 @@ else
     echo
     echo "Docker-compose was installed successfully."
 fi
+
+echo
+echo "Do you want to prepare the system for use with any of the RTL-SDR / ADS-B containers?"
+echo "Examples of these include the collection of containers maintained by @MikeNye,"
+echo "Tar1090, Readsb-ProtoBuf, Acarshub, PlaneFence, PiAware, RadarVirtuel, FR24, other feeders, etc."
+echo "It\'s safe to say YES to this question and continue, unless you are using a DVB-T stick to watch digital television."
+echo
+read -p "Press ENTER to continue, or CTRL-C to abort"
+echo
+tmpdir=$(mktemp)
+mkdir -p $tmpdir
+pushd $tmpdir
+    echo -n "Getting the latest RTL-SDR packages... "
+    sudo apt-get install -qq -y git rtl-sdr >/dev/null
+    echo -n "Getting the latest UDEV rules... "
+    # First install the UDEV rules for RTL-SDR dongles
+    git clone git://git.osmocom.org/rtl-sdr.git >/dev/null 2>&1
+    echo -n "Installing and updating UDEV rules... "
+    sudo cp rtl-sdr/rtl-sdr.rules /etc/udev/rules.d/
+    # Now make sure that the devices are R/W by all users, rather than only by root:
+    sudo sed -i 's/MODE=\"0660/MODE=\"0666/g' /etc/udev/rules.d/rtl-sdr.rules >/dev/null 2>&1
+    # Next, blacklist the drivers so the dongles stay accessible
+    echo -n "Blacklisting any competing RTL-SDR drivers... "
+    sudo cat <<EOM >/etc/modprobe.d/blacklist-rtl2832.conf
+blacklist rtl2832
+blacklist dvb_usb_rtl28xxu
+blacklist rtl2832_sdr
+blacklist rtl8xxxu
+blacklist rtl2838
+EOM
+    # Unload any existing drivers, suppress any error messages that are displayed when the driver wasnt loaded:
+    echo -n "Unloading any preloaded RTL-SDR drivers... "
+    sudo rmmod rtl2832_sdr 2>/dev/null
+    sudo rmmod dvb_usb_rtl28xxu 2>/dev/null
+    sudo rmmod rtl2832 2>/dev/null
+    sudo rmmod rtl8xxxu 2>/dev/null
+    sudo rmmod rtl2838 2>/dev/null
+    echo "Enabling the use of priviledged ports by Docker... "
+    sudo setcap cap_net_bind_service=ep $(which rootlesskit)
+    echo "Done!"
+popd
+rm -rf $tmpdir
+echo
+echo "We\'ve installed these packages, and we think they may be useful for you in the future. So we will leave them installed:"
+echo "git, rtl-sdr"
+echo "If you don\'t want them, feel free to uninstall them using this command:"
+echo "sudo apt-get remove git rtl-sdr"
+echo
+echo "To make sure that everything works OK, you should reboot your machine."
+read -p "Press ENTER to reboot, or CTRL-C to abort"
