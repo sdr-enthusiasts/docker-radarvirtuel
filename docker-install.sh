@@ -1,6 +1,6 @@
 #!/bin/bash
 # DOCKER-INSTALL.SH -- Installation script for the Docker infrastructure on a Raspbian or Ubuntu system
-# Usage: ./docker-install.sh or `wget -q https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-install.sh && . ./docker-install.sh`
+# Usage: ./docker-install.sh or `wget -q -O docker-install.sh https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-install.sh && . ./docker-install.sh`
 #
 # Copyright 2021 Ramon F. Kolb - licensed under the terms and conditions
 # of the MIT license. The terms and conditions of this license are included with the Github
@@ -27,12 +27,16 @@ echo "Note - this scripts makes use of \"sudo\" to install Docker."
 echo "If you haven't added your current login to the \"sudoer\" list,"
 echo "you may be asked for your password at various times during the installation."
 echo
+echo "This script assumes a \"standard\" OS setup of Debian Buster or later, including variations like"
+echo "Raspberry Pi OS or Ubuntu. It uses \'apt-get\' and \'wget\' to get started, and assumes access to"
+echo "the standard package repositories".
+echo
 read -p "Press ENTER to start, CTRL-C to abort, or \"?\" to get help on how to add your login to the \"sudoers\" list > " text
 if [[ "$text" == "?" ]]
 then
     echo
     echo "Adding your login name, \"${USER}\", to \"sudoers\" will enable you to use \"sudo\" without having to type your password every time."
-    echo "You may be asked to enter your password once or twice below. We promise, this is the last time."
+    echo "You may be asked to enter your password a few times below. We promise, this is the last time."
     echo
     read -p "Should we do this now? If you choose \"no\", you can always to it later by yourself [Y/n] > " -n 1 text
     if [[ "${text,,}" != "n" ]]
@@ -42,7 +46,8 @@ then
         sudo usermod -aG sudo ${USER}
         echo "done!"
         echo -n "Ensuring that user \"${USER}\" can run \'sudo\' without entering a password... "
-        sudo echo "${USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+        echo "${USER} ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/90-${USER}-privileges >/dev/null
+        sudo chmod 0440 /etc/sudoers.d/90-${USER}-privileges
         echo "done!"
         echo
         echo "You should be ready to go now. If it continues to ask for a password below, do the following:"
@@ -73,7 +78,7 @@ else
     sudo  usermod -aG docker $USER
     sudo mkdir -p /etc/docker
     sudo chmod a+rwx /etc/docker
-    sudo cat > /etc/docker/daemon.json <<EOF
+    sudo sh -c 'cat > /etc/docker/daemon.json <<EOF'
 {
   "log-driver": "local",
   "log-opts": {
@@ -153,7 +158,7 @@ EOM
     sudo rmmod rtl2832 2>/dev/null
     sudo rmmod rtl8xxxu 2>/dev/null
     sudo rmmod rtl2838 2>/dev/null
-    echo "Enabling the use of priviledged ports by Docker... "
+    echo "Enabling the use of privileged ports by Docker... "
     sudo setcap cap_net_bind_service=ep $(which rootlesskit)
     echo "Done!"
 popd
