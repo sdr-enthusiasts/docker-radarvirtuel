@@ -62,7 +62,7 @@ echo "Starting the installation of Docker."
 echo -n "Checking for an existing Docker installation... "
 if which docker >/dev/null 2>1
 then
-    echo "found! No need to install..."
+    echo "found! Skipping Docker installation"
 else
     echo "not found!"
     echo "Installing docker, each step may take a while:"
@@ -75,10 +75,10 @@ else
     echo "Installing Docker... "
     sudo sh get-docker.sh
     echo "Docker installed -- configuring docker..."
-    sudo  usermod -aG docker $USER
+    sudo usermod -aG docker $USER
     sudo mkdir -p /etc/docker
     sudo chmod a+rwx /etc/docker
-    sudo sh -c 'cat > /etc/docker/daemon.json <<EOF'
+    cat > /etc/docker/daemon.json <<EOF
 {
   "log-driver": "local",
   "log-opts": {
@@ -87,7 +87,7 @@ else
   }
 }
 EOF
-    sudo chmod a+r /etc/docker/daemon.json
+    sudo chmod u=rw,go=r /etc/docker/daemon.json
     # enable docker to run rootless:
     dockerd-rootless-setuptool.sh install
     echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
@@ -130,8 +130,7 @@ echo "It\'s safe to say YES to this question and continue, unless you are using 
 echo
 read -p "Press ENTER to continue, or CTRL-C to abort"
 echo
-tmpdir=$(mktemp)
-mkdir -p $tmpdir
+tmpdir=$(mktemp -d)
 pushd $tmpdir
     echo -n "Getting the latest RTL-SDR packages... "
     sudo apt-get install -qq -y git rtl-sdr >/dev/null
@@ -141,25 +140,26 @@ pushd $tmpdir
     echo -n "Installing and updating UDEV rules... "
     sudo cp rtl-sdr/rtl-sdr.rules /etc/udev/rules.d/
     # Now make sure that the devices are R/W by all users, rather than only by root:
-    sudo sed -i 's/MODE=\"0660/MODE=\"0666/g' /etc/udev/rules.d/rtl-sdr.rules >/dev/null 2>&1
+    sudo -E $(which bash) -c "sed -i 's/MODE=\"0660/MODE=\"0666/g' /etc/udev/rules.d/rtl-sdr.rules >/dev/null 2>&1"
     # Next, blacklist the drivers so the dongles stay accessible
     echo -n "Blacklisting any competing RTL-SDR drivers... "
-    sudo cat <<EOM >/etc/modprobe.d/blacklist-rtl2832.conf
-blacklist rtl2832
-blacklist dvb_usb_rtl28xxu
-blacklist rtl2832_sdr
-blacklist rtl8xxxu
-blacklist rtl2838
-EOM
+    sudo -E $(which bash) -c "echo blacklist rtl2832 >/etc/modprobe.d/blacklist-rtl2832.conf"
+    sudo -E $(which bash) -c "echo blacklist dvb_usb_rtl28xxu >>/etc/modprobe.d/blacklist-rtl2832.conf"
+    sudo -E $(which bash) -c "echo blacklist rtl2832_sdr >>/etc/modprobe.d/blacklist-rtl2832.conf"
+    sudo -E $(which bash) -c "echo blacklist rtl8xxxu >>/etc/modprobe.d/blacklist-rtl2832.conf"
+    sudo -E $(which bash) -c "echo blacklist rtl2838 >>/etc/modprobe.d/blacklist-rtl2832.conf"
+
     # Unload any existing drivers, suppress any error messages that are displayed when the driver wasnt loaded:
     echo -n "Unloading any preloaded RTL-SDR drivers... "
-    sudo rmmod rtl2832_sdr 2>/dev/null
-    sudo rmmod dvb_usb_rtl28xxu 2>/dev/null
-    sudo rmmod rtl2832 2>/dev/null
-    sudo rmmod rtl8xxxu 2>/dev/null
-    sudo rmmod rtl2838 2>/dev/null
+    sudo -E $(which bash) -c "rmmod rtl2832_sdr 2>/dev/null"
+    sudo -E $(which bash) -c " rmmod dvb_usb_rtl28xxu 2>/dev/null"
+    sudo -E $(which bash) -c " rmmod rtl2832 2>/dev/null"
+    sudo -E $(which bash) -c " rmmod rtl8xxxu 2>/dev/null"
+    sudo -E $(which bash) -c " rmmod rtl2838 2>/dev/null"
     echo "Enabling the use of privileged ports by Docker... "
     sudo setcap cap_net_bind_service=ep $(which rootlesskit)
+    echo "Making sure rootlesskit will persist when the terminal closes..."
+    sudo loginctl enable-linger $(whoami)
     echo "Done!"
 popd
 rm -rf $tmpdir
@@ -170,4 +170,6 @@ echo "If you don\'t want them, feel free to uninstall them using this command:"
 echo "sudo apt-get remove git rtl-sdr"
 echo
 echo "To make sure that everything works OK, you should reboot your machine."
+echo "Once rebooted, you are ready to go!"
 read -p "Press ENTER to reboot, or CTRL-C to abort"
+sudo reboot
