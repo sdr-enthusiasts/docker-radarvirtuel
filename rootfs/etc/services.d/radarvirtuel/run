@@ -33,10 +33,7 @@ then
     echo
     echo "Please edit the FEEDER_KEY parameter your docker-compose.yml file and restart the container."
     echo "[$APPNAME][$(date)] halted"
-    while :
-    do
-        sleep 1d
-    done
+    sleep infinity
 fi
 
 # Now check SOURCE_HOST
