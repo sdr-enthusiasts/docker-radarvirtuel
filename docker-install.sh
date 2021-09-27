@@ -160,6 +160,8 @@ pushd $tmpdir
     sudo setcap cap_net_bind_service=ep $(which rootlesskit)
     echo "Making sure rootlesskit will persist when the terminal closes..."
     sudo loginctl enable-linger $(whoami)
+    echo "Excluding veth interfaces from dhcp..."
+    sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
     echo "Done!"
 popd
 rm -rf $tmpdir
