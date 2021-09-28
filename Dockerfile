@@ -87,7 +87,7 @@ COPY rootfs/ /
 RUN set -x && \
 #
 # Link to the arch-appropriate version of ANfeeder:
-    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported!" ; exit 1; } || \
+    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) !" ; exit 1; } || \
     ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
 #
 
