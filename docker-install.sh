@@ -160,9 +160,12 @@ pushd $tmpdir
     sudo setcap cap_net_bind_service=ep $(which rootlesskit)
     echo "Making sure rootlesskit will persist when the terminal closes..."
     sudo loginctl enable-linger $(whoami)
-    [[ -f "/etc/dhcpcd.conf" ]] && echo "Excluding veth interfaces from dhcp..."
-    [[ -f "/etc/dhcpcd.conf" ]] && echo "Excluding veth interfaces from dhcp..."sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
-    echo "Done!"
+    if grep "denyinterfaces veth\*" /etc/dhcpcd.conf >/dev/null 2>&1
+    then
+      echo -n "Excluding veth interfaces from dhcp... "
+      sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
+      echo "done!"
+    fi
 popd
 rm -rf $tmpdir
 echo
