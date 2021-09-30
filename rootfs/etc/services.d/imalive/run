@@ -12,6 +12,16 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
 
+# Check if the FEEDER_KEY has been correctly configured. If it hasn't, we shouldn't start ImAlive.
+keyhash="${FEEDER_KEY##*:}"
+stid="${FEEDER_KEY%%:*}"
+if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
+then
+    # No need to complain too loudly about it, as the RadarVirtuel run process already puts a lot of text into the logs
+    echo "[$APPNAME][$(date)] halted: FEEDER_KEY not or incorrectly configured"
+    sleep infinity
+fi
+
 while true
 do
     [[ "$ALIVE" == "true" ]] && KEEPALIVE=$KEEPALIVE_ALIVE || KEEPALIVE=$KEEPALIVE_DEAD

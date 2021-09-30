@@ -1,5 +1,6 @@
 
-FROM debian:buster-20210816-slim
+
+FROM debian:buster-20210927-slim
 
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git" \
@@ -87,7 +88,7 @@ COPY rootfs/ /
 RUN set -x && \
 #
 # Link to the arch-appropriate version of ANfeeder:
-    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported!" ; exit 1; } || \
+    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) !" ; exit 1; } || \
     ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
 #
 

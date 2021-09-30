@@ -27,16 +27,13 @@ then
     echo "|                                      |"
     echo "|--------------------------------------|"
     echo "It should consist of:"
-    echo "- 4-6 letters or numbers (you entered $stid, which has ${#stid} characters)"
+    echo "- 4-6 letters or numbers (you entered \"$stid\", which has ${#stid} characters)"
     echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$FEEDER_KEY")" != ":" ]] && echo -n "NOT "`enter)"
-    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered $keyhash, which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
+    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"$keyhash\", which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
     echo
-    echo "Please edit the FEEDER_KEY parameter your docker-compose.yml file and restart the container."
+    echo "Please add the FEEDER_KEY parameter to your docker-compose.yml file and restart the container."
     echo "[$APPNAME][$(date)] halted"
-    while :
-    do
-        sleep 1d
-    done
+    sleep infinity
 fi
 
 # Now check SOURCE_HOST
