@@ -22,4 +22,5 @@ cp -P /usr/share/ca-certificates/mozilla/*.crt ./root_certs/usr/share/ca-certifi
 
 git pull
 docker buildx build --progress=plain --compress --push $2 --platform $ARCHS --tag kx1t/radarvirtuel:$TAG .
+rm -rf ./root_certs
 popd
