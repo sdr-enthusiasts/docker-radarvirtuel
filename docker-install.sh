@@ -88,12 +88,8 @@ else
 }
 EOF
     sudo chmod u=rw,go=r /etc/docker/daemon.json
-    # enable docker to run rootless:
-    dockerd-rootless-setuptool.sh install
     echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
-    echo "export DOCKER_HOST=unix:///run/user/$(id -u ${username})/docker.sock" >> ~/.bashrc
     export PATH=/usr/bin:$PATH
-    export DOCKER_HOST=unix:///run/user/$(id -u ${username})/docker.sock
 
     sudo service docker restart
     echo "Now let's run a test container:"
@@ -115,11 +111,40 @@ then
 else
     echo "not found!"
     echo "Installing Docker-compose... "
-    sudo curl -L -s --fail https://raw.githubusercontent.com/linuxserver/docker-docker-compose/master/run.sh -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    sudo docker-compose version
-    echo
-    echo "Docker-compose was installed successfully."
+
+    # Do a bunch of prep work
+    DC_ARCHS=("darwin-aarch64")
+    DC_ARCHS+=("darwin-x86_64")
+    DC_ARCHS+=("linux-aarch64")
+    DC_ARCHS+=("linux-armv6")
+    DC_ARCHS+=("linux-armv7")
+    DC_ARCHS+=("linux-s390x")
+    DC_ARCHS+=("linux-x86_64")
+
+    OS_NAME="$(uname -s)"
+    OS_NAME="${OS_NAME,,}"
+    ARCH_NAME="$(uname -m)"
+    ARCH_NAME="${ARCH_NAME,,}"
+    [[ "${ARCH_NAME:0:5}" == "armv6"]] && ARCH_NAME="armv6"
+    [[ "${ARCH_NAME:0:5}" == "armv7"]] && ARCH_NAME="armv7"
+    [[ "${ARCH_NAME:0:5}" == "armhf"]] && ARCH_NAME="armv7"
+    [[ "${ARCH_NAME:0:5}" == "armel"]] && ARCH_NAME="armv6"
+
+    if [[ ! "${DC_ARCHS[*]}" =~ "${OS_NAME}-${ARCH_NAME}" ]]
+    then
+      echo "Cannot install Docker-Compose for your system \"${OS_NAME}-${ARCH_NAME}\" because there is no suitable install candidate."
+      echo "You may be able to install it manually or compile from source; see https://github.com/docker/compose/releases"
+    else
+      sudo curl -L "https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+      sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+      if docker-compose version
+      then
+        echo "Docker-compose was installed successfully."
+      else
+        echo "Docker-compose was not installed correctly - you may need to do this manually."
+      fi
+    fi
 fi
 
 echo
@@ -131,7 +156,7 @@ echo
 read -p "Press ENTER to continue, or CTRL-C to abort"
 echo
 tmpdir=$(mktemp -d)
-pushd $tmpdir
+pushd $tmpdir >/dev/null
     echo -n "Getting the latest RTL-SDR packages... "
     sudo apt-get install -qq -y git rtl-sdr >/dev/null
     echo -n "Getting the latest UDEV rules... "
@@ -156,8 +181,9 @@ pushd $tmpdir
     sudo -E $(which bash) -c " rmmod rtl2832 2>/dev/null"
     sudo -E $(which bash) -c " rmmod rtl8xxxu 2>/dev/null"
     sudo -E $(which bash) -c " rmmod rtl2838 2>/dev/null"
-    echo "Enabling the use of privileged ports by Docker... "
-    sudo setcap cap_net_bind_service=ep $(which rootlesskit)
+    # the following not needed since we no longer do rootlesskit:
+    # echo "Enabling the use of privileged ports by Docker... "
+    # sudo setcap cap_net_bind_service=ep $(which rootlesskit)
     echo "Making sure rootlesskit will persist when the terminal closes..."
     sudo loginctl enable-linger $(whoami)
     if grep "denyinterfaces veth\*" /etc/dhcpcd.conf >/dev/null 2>&1
@@ -166,7 +192,7 @@ pushd $tmpdir
       sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
       echo "done!"
     fi
-popd
+popd >/dev/null
 rm -rf $tmpdir
 echo
 echo "We\'ve installed these packages, and we think they may be useful for you in the future. So we will leave them installed:"
