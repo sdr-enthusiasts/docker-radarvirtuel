@@ -138,6 +138,10 @@ else
       sudo curl -L "https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       sudo chmod +x /usr/local/bin/docker-compose
       sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+      [[ -d "/usr/local/lib/docker/cli-plugins" ]] && sudo ln -s /usr/local/bin/docker-compose /usr/local/lib/docker/cli-plugins
+      [[ -d "/usr/lib/docker/cli-plugins" ]] && sudo ln -s /usr/local/bin/docker-compose /usr/lib/docker/cli-plugins
+      [[ -d "/usr/local/libexec/docker/cli-plugins" ]] && sudo ln -s /usr/local/bin/docker-compose /usr/local/libexec/docker/cli-plugins
+      [[ -d "/usr/libexec/docker/cli-plugins" ]] && sudo ln -s /usr/local/bin/docker-compose /usr/libexec/docker/cli-plugins
       if docker-compose version
       then
         echo "Docker-compose was installed successfully."
