@@ -39,9 +39,12 @@ RUN set -x && \
     pushd /git && \
         git clone https://github.com/mutability/mlat-client.git && \
         cd mlat-client && \
-        dpkg-buildpackage -b -uc && \
-        cd .. && \
-        dpkg -i mlat-client_*.deb && \
+#        dpkg-buildpackage -b -uc && \
+#        cd .. && \
+#        dpkg -i mlat-client_*.deb && \
+        BRANCH_MLAT_CLIENT=$(git tag --sort="-creatordate" | head -1) && \
+        git checkout "$BRANCH_MLAT_CLIENT" && \
+        ./setup.py install && \
     popd && \
     rm -rf /git && \
 
