@@ -15,7 +15,6 @@ RUN set -x && \
 # define packages needed for installation and general management of the container:
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
-#    KEPT_PACKAGES+=(procps nano aptitude netcat) && \
     KEPT_PACKAGES+=(procps nano aptitude) && \
     KEPT_PACKAGES+=(psmisc) && \
 # Git and net-tools are needed to install and run @Mikenye's HealthCheck framework
@@ -23,10 +22,8 @@ RUN set -x && \
 # These are needed to compile and install the mlat_client:
     TEMP_PACKAGES+=(build-essential) && \
     TEMP_PACKAGES+=(debhelper) && \
-    #TEMP_PACKAGES+=(python-dev) && \
     TEMP_PACKAGES+=(python3-dev) && \
     TEMP_PACKAGES+=(python3-distutils-extra) && \
-    #TEMP_PACKAGES+=(dh-python) && \
 #
 # Install all these packages:
     apt-get update -q -y && \
@@ -45,6 +42,7 @@ RUN set -x && \
         BRANCH_MLAT_CLIENT=$(git tag --sort="-creatordate" | head -1) && \
         git checkout "$BRANCH_MLAT_CLIENT" && \
         ./setup.py install && \
+        ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
     popd && \
     rm -rf /git && \
 
@@ -52,7 +50,7 @@ RUN set -x && \
 # Clean up
     apt-get remove -q -y ${TEMP_PACKAGES[@]} && \
     apt-get autoremove -q -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -y && \
-    apt-get clean -y && \
+    apt-get clean -q -y && \
     rm -rf /src /tmp/* /var/lib/apt/lists/* && \
 #
 # Do some stuff for kx1t's convenience:
