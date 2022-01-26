@@ -9,7 +9,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Copy needs to be here to prevent github actions from failing.
 # SSL Certs are pre-loaded into the rootfs via a job in github action:
 # See: "Copy CA Certificates from GitHub Runner to Image rootfs" in deploy.yml
-COPY root_certs/ /
+# COPY root_certs/ /
 
 RUN set -x && \
 # define packages needed for installation and general management of the container:
