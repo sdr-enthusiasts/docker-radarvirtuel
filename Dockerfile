@@ -23,10 +23,10 @@ RUN set -x && \
 # These are needed to compile and install the mlat_client:
     TEMP_PACKAGES+=(build-essential) && \
     TEMP_PACKAGES+=(debhelper) && \
-    TEMP_PACKAGES+=(python-dev) && \
+    #TEMP_PACKAGES+=(python-dev) && \
     TEMP_PACKAGES+=(python3-dev) && \
     TEMP_PACKAGES+=(python3-distutils-extra) && \
-    TEMP_PACKAGES+=(dh-python) && \
+    #TEMP_PACKAGES+=(dh-python) && \
 #
 # Install all these packages:
     apt-get update -q -y && \
