@@ -25,7 +25,7 @@ RUN set -x && \
     TEMP_PACKAGES+=(debhelper) && \
     TEMP_PACKAGES+=(python3-dev) && \
     TEMP_PACKAGES+=(python3-distutils-extra) && \
-    TEMP_PACKAGES+=(dh-python3) && \
+    TEMP_PACKAGES+=(dh-python) && \
 #
 # Install all these packages:
     apt-get update -q -y && \
