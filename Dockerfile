@@ -34,10 +34,8 @@ RUN set -x && \
 # Compile and Install the mlat_client
     mkdir -p /git && \
     pushd /git && \
-      git clone $URL_MLAT_CLIENT_REPO && \
+      git clone --depth 1 $URL_MLAT_CLIENT_REPO && \
       cd mlat-client && \
-      BRANCH_MLAT_CLIENT=$(git tag --sort="-creatordate" | head -1) && \
-      git checkout "$BRANCH_MLAT_CLIENT" && \
       ./setup.py install && \
       ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
     popd && \
