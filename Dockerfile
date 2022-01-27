@@ -34,15 +34,12 @@ RUN set -x && \
 # Compile and Install the mlat_client
     mkdir -p /git && \
     pushd /git && \
-        git clone https://github.com/mutability/mlat-client.git && \
-        cd mlat-client && \
-#        dpkg-buildpackage -b -uc && \
-#        cd .. && \
-#        dpkg -i mlat-client_*.deb && \
-        BRANCH_MLAT_CLIENT=$(git tag --sort="-creatordate" | head -1) && \
-        git checkout "$BRANCH_MLAT_CLIENT" && \
-        ./setup.py install && \
-        ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
+      git clone $URL_MLAT_CLIENT_REPO && \
+      cd mlat-client && \
+      BRANCH_MLAT_CLIENT=$(git tag --sort="-creatordate" | head -1) && \
+      git checkout "$BRANCH_MLAT_CLIENT" && \
+      ./setup.py install && \
+      ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
     popd && \
     rm -rf /git && \
 
