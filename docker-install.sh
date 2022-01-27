@@ -67,7 +67,7 @@ else
     echo "not found!"
     echo "Installing docker, each step may take a while:"
     echo -n "Updating repositories... "
-    sudo apt-get update -qq >/dev/null
+    sudo apt-get update -qq -y >/dev/null && sudo apt-get upgrade -q -y
     echo -n "Ensuring dependencies are installed... "
     sudo apt-get install -qq -y curl uidmap slirp4netns >/dev/null
     echo -n "Getting docker..."
@@ -151,6 +151,36 @@ else
     fi
 fi
 
+# Now make sure that libseccomp2 >= version 2.4. This is necessary for Bullseye-based containers
+# This is often an issue on Buster-based host systems with 32-bits Rasp Pi OS installed pre-November 2021.
+# The following code checks and corrects this - see also https://github.com/fredclausen/Buster-Docker-Fixes
+OS_VERSION="$(sed -n 's/\(^\s*VERSION_CODENAME=\)\(.*\)/\2/p' /etc/os-release)"
+OS_VERSION=${OS_VERSION^^}
+LIBVERSION_MAJOR="$(apt-cache policy libseccomp2 | grep -e libseccomp2: -A1 | tail -n1 | sed -n 's/.*:\s*\([0-9]*\).\([0-9]*\).*/\1/p')"
+LIBVERSION_MINOR="$(apt-cache policy libseccomp2 | grep -e libseccomp2: -A1 | tail -n1 | sed -n 's/.*:\s*\([0-9]*\).\([0-9]*\).*/\2/p')"
+if (( LIBVERSION_MAJOR <= 2 )) && (( LIBVERSION_MINOR < 4 )) && [[ "OS_VERSION" == "BUSTER" ]]
+then
+  echo "libseccomp2 needs updating. Please wait while we do this."
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
+  echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list.d/buster-backports.list
+  sudo apt update
+  sudo apt install -y -q -t buster-backports libseccomp2
+  # Now make sure all went well
+  LIBVERSION_MAJOR="$(apt-cache policy libseccomp2 | grep -e libseccomp2: -A1 | tail -n1 | sed -n 's/.*:\s*\([0-9]*\).\([0-9]*\).*/\1/p')"
+  LIBVERSION_MINOR="$(apt-cache policy libseccomp2 | grep -e libseccomp2: -A1 | tail -n1 | sed -n 's/.*:\s*\([0-9]*\).\([0-9]*\).*/\2/p')"
+  if (( LIBVERSION_MAJOR >= 2 )) && (( LIBVERSION_MINOR > 3 ))
+  then
+	   echo "Upgrade successful. Your system now uses libseccomp2 version $(apt-cache policy libseccomp2|sed -n 's/\s*Installed:\s*\(.*\)/\1/p')."
+  else
+	    echo "Something went wrong. Your system is using libseccomp2 v$(apt-cache policy libseccomp2|sed -n 's/\s*Installed:\s*\(.*\)/\1/p'), and it needs to be v2.4 or greater for the ADSB containers to work properly."
+      echo "Please follow these instructions to fix this: https://github.com/fredclausen/Buster-Docker-Fixes"
+	     read -p "Press ENTER to continue."
+  fi
+else
+  echo "Your system is based on Debian ${OS_VERSION} and has libseccomp2 v$(apt-cache policy libseccomp2|sed -n 's/\s*Installed:\s*\(.*\)/\1/p'),"
+  echo "No need to upgrade to a newer version!"
+fi
+
 echo
 echo "Do you want to prepare the system for use with any of the RTL-SDR / ADS-B containers?"
 echo "Examples of these include the collection of containers maintained by @MikeNye,"
@@ -179,32 +209,37 @@ pushd $tmpdir >/dev/null
     sudo -E $(which bash) -c "echo blacklist rtl2838 >>/etc/modprobe.d/blacklist-rtl2832.conf"
 
     # Unload any existing drivers, suppress any error messages that are displayed when the driver wasnt loaded:
-    echo -n "Unloading any preloaded RTL-SDR drivers... "
+    echo -n "Unloading any preloaded RTL-SDR drivers... ignore any error messages:"
     sudo -E $(which bash) -c "rmmod rtl2832_sdr 2>/dev/null"
     sudo -E $(which bash) -c " rmmod dvb_usb_rtl28xxu 2>/dev/null"
     sudo -E $(which bash) -c " rmmod rtl2832 2>/dev/null"
     sudo -E $(which bash) -c " rmmod rtl8xxxu 2>/dev/null"
     sudo -E $(which bash) -c " rmmod rtl2838 2>/dev/null"
-    # the following not needed since we no longer do rootlesskit:
-    # echo "Enabling the use of privileged ports by Docker... "
-    # sudo setcap cap_net_bind_service=ep $(which rootlesskit)
-    echo "Making sure rootlesskit will persist when the terminal closes..."
-    sudo loginctl enable-linger $(whoami)
-    if grep "denyinterfaces veth\*" /etc/dhcpcd.conf >/dev/null 2>&1
-    then
-      echo -n "Excluding veth interfaces from dhcp... "
-      sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
-      echo "done!"
-    fi
+
 popd >/dev/null
 rm -rf $tmpdir
+
+echo "Making sure commands will persist when the terminal closes..."
+sudo loginctl enable-linger $(whoami)
+if grep "denyinterfaces veth\*" /etc/dhcpcd.conf >/dev/null 2>&1
+then
+  echo -n "Excluding veth interfaces from dhcp... "
+  sudo sh -c 'echo "denyinterfaces veth*" >> /etc/dhcpcd.conf'
+  echo "done!"
+fi
+
 echo
 echo "We\'ve installed these packages, and we think they may be useful for you in the future. So we will leave them installed:"
 echo "git, rtl-sdr"
 echo "If you don\'t want them, feel free to uninstall them using this command:"
 echo "sudo apt-get remove git rtl-sdr"
-echo
+echo ""
 echo "To make sure that everything works OK, you should reboot your machine."
+echo ""
+echo "WARNING - if you are connected remotely to a Raspberry Pi (via SSH or VNC)"
+echo "make sure you unplug any externally powered USB devices or hubs before rebooting"
+echo "because these may cause your Raspberry Pi to get stuck in the \"off\" state!"
+echo ""
 echo "Once rebooted, you are ready to go!"
 read -p "Press ENTER to reboot, or CTRL-C to abort"
 sudo reboot
