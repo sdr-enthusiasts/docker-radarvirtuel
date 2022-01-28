@@ -125,10 +125,10 @@ else
     OS_NAME="${OS_NAME,,}"
     ARCH_NAME="$(uname -m)"
     ARCH_NAME="${ARCH_NAME,,}"
-    [[ "${ARCH_NAME:0:5}" == "armv6"]] && ARCH_NAME="armv6"
-    [[ "${ARCH_NAME:0:5}" == "armv7"]] && ARCH_NAME="armv7"
-    [[ "${ARCH_NAME:0:5}" == "armhf"]] && ARCH_NAME="armv7"
-    [[ "${ARCH_NAME:0:5}" == "armel"]] && ARCH_NAME="armv6"
+    [[ "${ARCH_NAME:0:5}" == "armv6" ]] && ARCH_NAME="armv6"
+    [[ "${ARCH_NAME:0:5}" == "armv7" ]] && ARCH_NAME="armv7"
+    [[ "${ARCH_NAME:0:5}" == "armhf" ]] && ARCH_NAME="armv7"
+    [[ "${ARCH_NAME:0:5}" == "armel" ]] && ARCH_NAME="armv6"
 
     if [[ ! "${DC_ARCHS[*]}" =~ "${OS_NAME}-${ARCH_NAME}" ]]
     then
