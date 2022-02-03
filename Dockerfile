@@ -1,15 +1,8 @@
-FROM ghcr.io/fredclausen/docker-baseimage:python
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
 ENV URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git" \
     PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
-
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Copy needs to be here to prevent github actions from failing.
-# SSL Certs are pre-loaded into the rootfs via a job in github action:
-# See: "Copy CA Certificates from GitHub Runner to Image rootfs" in deploy.yml
-# COPY root_certs/ /
 
 RUN set -x && \
 # define packages needed for installation and general management of the container:
@@ -53,15 +46,6 @@ RUN set -x && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc
 
 COPY rootfs/ /
-
-RUN set -x && \
-#
-# Link to the arch-appropriate version of ANfeeder:
-    [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) !" ; exit 1; } || \
-    ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
-#
-
-ENTRYPOINT [ "/init" ]
 
 # Add healthcheck
 HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
