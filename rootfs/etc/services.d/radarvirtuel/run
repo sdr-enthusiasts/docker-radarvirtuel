@@ -14,6 +14,11 @@ echo "[$APPNAME][$(date)] RadarVirtuel was started as an s6 service"
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
 
+# Get the correct version of ANfeeder in place:
+[[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) ! Container execution stopped." ; sleep infinity; } || \
+ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
+[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Architecture: $(dpkg --print-architecture) (supported)"
+
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
 keyhash="${FEEDER_KEY##*:}"
@@ -69,7 +74,6 @@ done
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
-
 
 /home/py/ANfeeder $verbose -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST
 a=$?
