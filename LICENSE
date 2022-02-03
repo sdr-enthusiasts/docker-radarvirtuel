@@ -2,16 +2,21 @@ PARTS OF THIS CONTAINER WERE PROVIDED BY LAURENT DUVAL AND ADSBNETWORK
 AND ARE COPYRIGHT (C) BY LAURENT DUVAL AND ARE NOT LICENSED UNDER AN
 OPEN SOURCE LICENSE.
 
+THESE INCLUDE BUT ARE NOT LIMITED TO THE FOLLOWING FILES:
+ANfeeder-raspy-amd64
+ANfeeder-raspy-arm64
+ANfeeder-raspy-armhf
+
 USE BY PERMISSION OF LAURENT DUVAL ONLY - laurent.duval@adsbnetwork.com
 
 ---------------------------------------------------------------------------
 
-The remainder of the scripts in this Docker container and any script modifications
+The remainder of the scripts and files in this repository and any script modifications
 are provided under the MIT License as stated below.
 
 MIT License
 
-Copyright (c) 2021 kx1t
+Copyright (c) 2021, 2022 by Ramon F. Kolb (kx1t)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
