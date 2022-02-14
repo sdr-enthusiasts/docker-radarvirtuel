@@ -8,11 +8,6 @@ on:
       - master
       - main
 
-  # Build and deploy the image nightly (to ensure we pick up any security updates)
-  schedule:
-    - cron: "0 10 * * *"
-
-
 jobs:
   deploy_dockerhub_multiarch:
     name: Deploy to DockerHub (Multi-Arch)
