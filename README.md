@@ -7,7 +7,7 @@ This application is a feeder service that takes RAW/AVR ADSB data from a service
 RadarVirtuel can be reached at:
 - http://www.radarvirtuel.com/
 
-Before you install this container, you need a feeder key. To request one, email support@adsbnetwork.com with the following information:
+Before you install this container, you need a **feeder key**. To request one, email support@adsbnetwork.com with the following information:
 - Your name
 - The Lat/Lon and nearest airport of your station
 - Your Raspberry Pi model (or other hardware if not Raspberry Pi)
@@ -21,40 +21,46 @@ You should also have received a Feeder Key as per the section above.
 
 With these 4 simple steps, you should be up and running in 5 minutes or less. If you need more detailed instructions, please continue reading the next few sections of this README.
 
-1. Download the [`docker-compose.yml`](https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml) example file.
-2. Edit that file --
-- replace `FEEDER_KEY` value with the feeder key you received from ADSB Network
-- replace `SOURCE_HOST` value:
-    - if you are using dump1090[-fa], readsb, or tar1090 WITHOUT docker or in a different docker stack:
+1. Download the [`docker-compose.yml`](docker-compose.yml) example file and add it to your existing `docker-compose.yml`, or run it stand-alone.
+2. In `docker-compose.yml`, please check the `${HOSTNAME}` variable:
+   - if you are using dockerized `readsb` or `tar1090` in the same docker-compose stack, then you can put in the name of the target container. Example: `SOURCE_HOST=readsb:30002`
+   - if you are using `dump1090[-fa]`, `readsb`, or `tar1090` WITHOUT docker or in a different docker stack:
         - if it's on the local machine -- use the default value of `${HOSTNAME}:30002`
         - if it's on a different machine -- use the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
         - (Note - NEVER put "127.0.0.1" as the IP address - this won't work!)
-        - (Also note - make sure to enable and expose RAW (AVR) data on port 30002 on dump1090[-fa] / readsb / tar1090 - see the troubleshooting section for some hints)
-- if you are using dockerized `readsb` or `tar1090` in the same docker-compose stack, then you can put in the name of the target container. Example: `SOURCE_HOST=readsb:30002`
-3. If you want to add the setup to an existing `docker-compose.yml` stack, simply copy and paste the (edited) radarvirtuel: section into the services: section of your existing `docker-compose.yml` file
+3. Make sure that you add the following parameters to your `.env` file, in the same directory as `docker-compose.yml`. You may already have some of these params in that file, in which case it's not necessary to duplicate them. You should have received your feeder key value from support@adsbnetwork.com.  
+```
+RV_FEEDER_KEY=xxxx:123456789ABCDEF
+FEEDER_LAT=12.345678
+FEEDER_LONG=6.7890123
+FEEDER_ALT_M=12.3
+```
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
 
 ## Detailed Instructions
 ## Prerequisites
 1. The use of this connector service assumes that you already have a working ADS-B station setup
-- Ensure you enabled RAW (=AVR) data output on the application that actively processes your ADS-B data.
+- Ensure you enabled RAW (=AVR) and BEAST data output on the application that actively processes your ADS-B data.
 - Your ADS-B station can be on the same machine as this application, or on a different machine.
 - Similarly, it doesn't matter if you are using a Containerized or non-Containerized setup.
 
 2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `RadarVirtuel` on.
-- For instructions on installing Docker, and (if you want) installing `readsb` and other ADS-B data collectors, please follow Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
-- For the RadarVirtuel container to work with an existing non-Containerized ADS-B station, please follow at least the 3 chapters in the `Setting up the host system` section.
-- If you need to install `Docker` and/or `Docker-compose` on your machine, you can use this handy script: ```wget -q https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-install.sh && . ./docker-install.sh```
+- For a good overview on Docker, installation, etc., please read Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
+- If you need to install `Docker` and/or `Docker-compose` on your machine, [go here](https://github.com/sdr-enthusiasts/docker-install) for a handy script that will take care of it for you
 
 3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. See the "What is it?" section above for instructions on how to get this key.
 
-## Stand-alone Installation
+## Installation
 For a stand-alone installation on a machine with an existing ADS-B receiver, you can simply do this:
 ```
 sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb && cd /opt/adsb
 wget https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml
 ```
-Then, edit the `docker-compose.yml` file and make sure the following parameters are set:
+Then, edit the `docker-compose.yml` file and the `.env` file in the same directory using the instructions above.
+
+To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the relevant sections into your existing `docker-compose.yml` and `.env` files.
+
+## Environment Parameters for `docker-radarvirtuel`
 | Parameter   | Definition                    | Value                     |
 |-------------|-------------------------------|---------------------------|
 | `FEEDER_KEY`  | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.       | `[icao]:[private_key]`        |
@@ -69,15 +75,6 @@ Then, edit the `docker-compose.yml` file and make sure the following parameters 
 | `LON` | This is your station longitude (used with MLAT) | |
 | `ALT` | This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters | |
 
-
-## Adding to an existing ADS-B Docker Installation
-If you are already running a stack of ADS-B related containers on your machine, you can add `RadarVirtuel` to your existing `docker-compose.yml` file.
-- To do so, download the example `docker-compose.yml` file from [here](https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml) and add everything starting with `radarvirtuel` to the Services section of your existin `docker-compose.yml`.
-- Configuration is similar to the stand-alone version (see above), with a minor difference for the `SOURCE_HOST` parameter: you can connect that one directly to the container that provides the data.
-- For example, if your data is provided by the `readsb` container, you can use:
-```
-SOURCE_HOST=readsb:30002
-```
 
 ## MLAT Configuration
 By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `MLAT_HOST` to empty. You will see a message in the logs encouraging to configure MLAT, followed by a message saying that MLAT is disabled.
