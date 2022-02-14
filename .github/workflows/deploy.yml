@@ -254,3 +254,4 @@ jobs:
           platforms: ${{ matrix.docker-platform }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REPO }}/${{ env.IMAGE }}:latest_${{ env.ARCH_TAG }}
+          
