@@ -1,26 +1,41 @@
 version: '3.8'
 
+#
+# If you are using the readsb container to pull your feed from, you may have add the following environment
+# variables to the readsb section:
+#      - READSB_NET_BEAST_OUTPUT_PORT=30005
+#      - READSB_NET_RAW_OUTPUT_PORT=30002
+#
+# Also, it assumes that you have added the following parameters to your `.env` file. If you didn't, feel free
+# to paste the values in here:
+#
+# RV_FEEDER_KEY=xxxx:123456789ABCDEF
+# FEEDER_LAT=12.345678
+# FEEDER_LONG=6.7890123
+# FEEDER_ALT_M=12.3
+#
+# Once everything runs to your liking, feel free to set VERBOSE=OFF
+#
+
 services:
   radarvirtuel:
-    image: kx1t/radarvirtuel
+    image: ghcr.io/sdr-enthusiasts/docker-radarvirtuel
     tty: true
     container_name: radarvirtuel
     hostname: radarvirtuel
     restart: always
     environment:
       # Basic RadarVirtuel params:
-      - FEEDER_KEY=xxxx:123456789ABCDEF
+      - FEEDER_KEY=${RV_FEEDER_KEY}
       - SOURCE_HOST=${HOSTNAME}:30002
       - RV_SERVER=mg2.adsbnetwork.com:50050
       # MLAT related params; set "MLAT_HOST=" (empty) to disable MLAT
-      # ALT is altitude above ground in "m" or "ft"
-      - MLAT_SERVER=mlat.adsbnetwork.com:50000
       - MLAT_HOST=${HOSTNAME}:30005
-      - LAT=42.123456789
-      - LON=-71.123456789
-      - ALT=40ft
-      # Logging related params:
-      - VERBOSE=OFF
+      - MLAT_SERVER=mlat.adsbnetwork.com:50000
+      - LAT=${FEEDER_LAT}
+      - LON=${FEEDER_LONG}
+      - ALT=${FEEDER_ALT_M}m
+      - VERBOSE=ON
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,relatime,size=128M
     volumes:
