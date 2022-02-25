@@ -50,8 +50,8 @@ do
 	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
 	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
     echo "[$APPNAME][$(date)]"
-    echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can"
-    echo "[$APPNAME][$(date)] ignore this as it is probably related to your SOURCE_HOST launching."
+    echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can ignore"
+    echo "[$APPNAME][$(date)] this as it is probably related to your SOURCE_HOST launching."
     echo "[$APPNAME][$(date)]"
     echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
     echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
@@ -67,8 +67,8 @@ do
     echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
     echo "[$APPNAME][$(date)] While testing the RV_SERVER parameter, we ran into trouble:"
     echo "[$APPNAME][$(date)] We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
-	echo "[$APPNAME][$(date)] your internet connection is still working."
+	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please"
+	echo "[$APPNAME][$(date)] make sure that your internet connection is still working."
     sleep 5
 done
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
