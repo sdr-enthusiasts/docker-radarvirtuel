@@ -42,12 +42,12 @@ then
 fi
 
 # Now check SOURCE_HOST
-while [[ $(timeout --preserve-status 5 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+while [[ $(timeout --preserve-status 10 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
 do
     echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
     echo "[$APPNAME][$(date)] While testing the SOURCE_HOST parameter, we ran into trouble:"
     echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please make sure that"
+	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please make sure that"
 	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
     echo "[$APPNAME][$(date)]"
     echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can ignore"
@@ -55,21 +55,21 @@ do
     echo "[$APPNAME][$(date)]"
     echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
     echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
-    sleep 5
+    sleep 10
 done
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST"
 
 
 # Last, check RV_SERVER -- check for UDP connection success
-while [[ $(timeout --preserve-status 5 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+while [[ $(timeout --preserve-status 10 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
 do
     echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
     echo "[$APPNAME][$(date)] While testing the RV_SERVER parameter, we ran into trouble:"
     echo "[$APPNAME][$(date)] We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 5 seconds. If this error keeps on repeating, please"
+	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please"
 	echo "[$APPNAME][$(date)] make sure that your internet connection is still working."
-    sleep 5
+    sleep 10
 done
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
