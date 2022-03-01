@@ -27,7 +27,7 @@ then
     - MLAT_HOST=\${HOSTNAME}:30005               # This is the same hostname as for SOURCE_HOST, but now using port 30005
     - LAT=42.123456789                          # This is your station latitude
     - LON=-71.123456789                         # This is your station longtude
-    - ALT=40ft                                  # This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters
+    - ALT=40ft                                  # This is your antenna altitude above the ellipoid (MSL) - use "ft" for feet or "m" for meters
 EOF
     echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
