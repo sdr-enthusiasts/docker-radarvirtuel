@@ -65,7 +65,7 @@ To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the rel
 |-------------|-------------------------------|---------------------------|
 | `FEEDER_KEY`  | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.       | `[icao]:[private_key]`        |
 | `SOURCE_HOST` | host and port number of your ADSB receiver. When running stand-alone on your local machine, this should be `${HOSTNAME}`. The value after the `:` is the port number to the RAW or AVR service on the target machine, most probably `30002`.       | `${HOSTNAME}:30002`       |
-| `RV_SERVER`    | The hostname and the TCP port of the RadarVirtuel server. You should NOT change this unless specifically instructed.       | `mg2.adsbnetwork.com:50050`       |
+| `RV_SERVER`    | The hostname and the port of the RadarVirtuel server. You should NOT change this unless specifically instructed.       | `mg2.adsbnetwork.com:50050`       |
 | `VERBOSE` | Write verbose messages to the log | `OFF` (default) / `ON` |
 | `MLAT_SERVER` | RV MLAT server address and port - do not change unless instructed to | mlat.adsbnetwork.com:50000 |
 | `MLAT_HOST` | This is the same hostname as for SOURCE_HOST, but now using port 30005 | `${HOSTNAME}:30005`       |
@@ -73,7 +73,7 @@ To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the rel
 | `MLAT_RESULTS` | Optional param to define how to make the MLAT results available. Value is used with the `--results` option of `mlat-client`. For valid options, do `docker exec -t radarvirtuel mlat-client --help` | `beast,listen,30105` (default) |
 | `LAT` | This is your station latitude (used with MLAT) | |
 | `LON` | This is your station longitude (used with MLAT) | |
-| `ALT` | This is your antenna altitude above ground level. Use "ft" for feet or "m" for meters | |
+| `ALT` | This is your antenna altitude above the ellipsoid (MSL). Use "ft" for feet or "m" for meters | |
 
 
 ## MLAT Configuration
