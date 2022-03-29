@@ -4,7 +4,7 @@
 source /opt/healthchecks-framework/healthchecks.sh
 
 # HEALTHLIMIT is the number of error lines that can be in run/imalive/errors before things go UNHEALTHY
-HEALTHLIMIT=10
+HEALTHLIMIT=20
 
 APPNAME="$(hostname)/healthcheck"
 

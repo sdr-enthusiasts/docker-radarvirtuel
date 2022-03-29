@@ -125,6 +125,9 @@ To monitor the logs of the RadarVirtuel container:
     - Sometimes, there are problems with newline characters when you import from a Windows machine. In that case, you can easily convert your file to Unix format. There are multiple ways to do this, one of them is:
     `cat docker-compose.yml | tr -dc '[:print:]\n' >/tmp/tmp.tmp && sudo mv -f /tmp/tmp.tmp docker-compose.yml`
 
+## Further help
+- For help with credentials and service outages, please email support@adsbnetwork.com
+- For help with the Docker Container and related issues, please contact kx1t on this Discord channel: https://discord.gg/m42azbZydy
 
 # OWNERSHIP AND LICENSE
 RADARVIRTUEL is owned by, and copyright by AdsbNetwork and by Laurent Duval. All rights reserved.
