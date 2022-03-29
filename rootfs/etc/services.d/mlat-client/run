@@ -1,68 +1,15 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-APPNAME="$(hostname)/mlat_client"
+APPNAME="$(hostname)/mlat-client"
 echo "[$APPNAME][$(date)] Started as an s6 service"
 
 MLAT_CMD="/usr/bin/mlat-client"
+MLAT_FLAG="/run/mlat-down"
+RESTARTTIMER=10
 
-# Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
-source /opt/healthchecks-framework/healthchecks.sh
-
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=auto
-[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105"
-
-if [[ "${MLAT_HOST}" == "" ]]
-then
-    sleep 15    # let all other processes write to the logs before we do
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] ATTENTION RADARVIRTUEL USERS!"
-    echo "[$APPNAME][$(date)] Please update your docker-compose.yml with MLAT parameters."
-    echo "[$APPNAME][$(date)] This is a NEW FEATURE and we encourage you to use it!"
-    echo "[$APPNAME][$(date)] "
-    echo "[$APPNAME][$(date)] Here's how: add the following parameter to the environment section of"
-    echo "[$APPNAME][$(date)] \"radarvirtuel:\""
-    cat <<EOF
-    - MLAT_SERVER=mlat.adsbnetwork.com:50000    # Don't change this unless someone tells you to
-    - MLAT_HOST=\${HOSTNAME}:30005               # This is the same hostname as for SOURCE_HOST, but now using port 30005
-    - LAT=42.123456789                          # This is your station latitude
-    - LON=-71.123456789                         # This is your station longtude
-    - ALT=40ft                                  # This is your antenna altitude above the ellipoid (MSL) - use "ft" for feet or "m" for meters
-EOF
-    echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] MLAT not started: configured incorrectly"
-    sleep infinity
-fi
-
-# Check if the FEEDER_KEY has been correctly configured. If it hasn't, we shouldn't start MLAT.
-keyhash="${FEEDER_KEY##*:}"
-stid="${FEEDER_KEY%%:*}"
-if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
-then
-    # No need to complain too loudly about it, as the RadarVirtuel run process already puts a lot of text into the logs
-    echo "[$APPNAME][$(date)] halted: FEEDER_KEY not or incorrectly configured"
-    sleep infinity
-fi
-
-
-sleep 15    # let all other processes start before we do
-while [[ $(timeout --preserve-status 5 netcat -z -v ${MLAT_HOST%%:*} ${MLAT_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
-do
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] MLAT host ${MLAT_HOST} cannot be reached."
-    echo "[$APPNAME][$(date)] If this message keeps repeating, please make sure that the MLAT_HOST"
-    echo "[$APPNAME][$(date)] is configured correctly, and that the MLAT host is available."
-    sleep 15
-done
-
-while [[ $(timeout --preserve-status 5 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
-do
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] MLAT server ${MLAT_SERVER} cannot be reached."
-    echo "[$APPNAME][$(date)] We will try again in 10 minutes"
-    sleep 10m
-done
+# Sleep forever if the initialization process found that MLAT cannot be started
+[[ -f $MLAT_FLAG ]] && sleep infinity || true
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
 # MLAT_PARAM+=(--no-udp)
@@ -73,11 +20,21 @@ MLAT_PARAM+=(--lon "${LON}")
 MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
-if [[ ${PRIVATE_MLAT} == true ]]; then
-    MLAT_PARAM+=(--privacy)
+
+[[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
 fi
 
 set -eo pipefail
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
-[[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}'
-[[ "$VERBOSE" == "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}'
+[[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}' || true
+if [[ "$VERBOSE" == "ON" ]]
+then
+   exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 |  stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+   a=$?
+else
+  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 |  stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+  a=$?
+fi
+
+echo "[$APPNAME][$(date)] MLAT-client exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
+sleep $RESTARTTIMER
