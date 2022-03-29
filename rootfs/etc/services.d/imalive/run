@@ -3,7 +3,9 @@
 
 APPNAME="$(hostname)/imalive"
 KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
-KEEPALIVE_DEAD=30     # keepalive timer in seconds if previous run failed
+KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
+                      # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
+CONNECTION_TIMEOUT=10 # timeout when checking ability to connect using netcat
 ALIVE=true
 mkdir -p /run/imalive
 touch /run/imalive/errors
@@ -11,16 +13,6 @@ echo "[$APPNAME][$(date)] Started as an s6 service"
 
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
-
-# Check if the FEEDER_KEY has been correctly configured. If it hasn't, we shouldn't start ImAlive.
-keyhash="${FEEDER_KEY##*:}"
-stid="${FEEDER_KEY%%:*}"
-if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
-then
-    # No need to complain too loudly about it, as the RadarVirtuel run process already puts a lot of text into the logs
-    echo "[$APPNAME][$(date)] halted: FEEDER_KEY not or incorrectly configured"
-    sleep infinity
-fi
 
 while true
 do
@@ -39,39 +31,37 @@ do
     set $host;
     # kx1t: retrieve station name from $FEEDER_KEY docker env variable
     st=${FEEDER_KEY%%:*}
-    ts=$(date "+%s")
+    timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    STATUS=$(curl -s http://mg2.adsbnetwork.com:/rtools/pyalive.php?stid=$st);
-
+    STATUS=$(curl -s ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st)
     status="${STATUS%%-*}"
-    rts="${STATUS##*-}"
-    rts=$((rts-10));
+    remote_timestamp="${STATUS##*-}"
 
     # check the ImAlive server:
-    if [[ "$(echo $STATUS | grep -o "404")" == "404" ]]
+    if grep -o "404 Not Found" <<< "$STATUS" >/dev/null 2>&1;
     then
-        echo  "[$APPNAME][$(date)] Server returned 404-Not Found at $ts. Restarting ANFeeder \"just in case\"..."
-        killall /home/py/ANfeeder
-        ALIVE="404 failure"
+        echo  "[$APPNAME][$(date)] Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
+        killall /home/py/ANfeeder >/dev/null 2>&1
+        ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
     elif [[ -z  $STATUS ]]
     then
-        echo  "[$APPNAME][$(date)] No Network at $ts. Restarting ANFeeder \"just in case\"..."
-        killall /home/py/ANfeeder
+        echo  "[$APPNAME][$(date)] No Network failure. Restarting ANFeeder \"just in case\"..."
+        killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no network failure"
-    elif [[ $ts -lt $rts ]]
+    elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]
     then
         # kx1t: using s6 to restart the service instead of the RestartANfeeder.sh script
-        echo "[$APPNAME][$(date)] Time stamp discrepancy: Restart ANfeeder at date $ts "
+        echo "[$APPNAME][$(date)] Time stamp discrepancy: local $(date -d @$timestamp) / remote $(date -d @$remote_timestamp); restarting ANfeeder"
         # kx1t: added warning that Docker image cannot resync NTP
-        echo "[$APPNAME][$(date)] Warning - Feeder script would like to resync NTP, but this cannot done from without a Docker container."
-        killall /home/py/ANfeeder
+        echo "[$APPNAME][$(date)] Warning - Feeder script would like to resync NTP, but this cannot done from within a Docker container."
+        echo "[$APPNAME][$(date)] Warning - Please make sure your host machine uses an accurate external time source!"
+        killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="time discrepancy failure"
-        # /usr/bin/RestartANfeeder.sh majdate;
     elif [[ "$status" == "ko" ]]
     then
         # kx1t: using s6 to restart the service
-        echo "[$APPNAME][$(date)] Server says that no data is received: Restart ANfeeder at date $ts "
-        killall /home/py/ANfeeder
+        echo "[$APPNAME][$(date)] Server says that no data is received: Restarting ANfeeder"
+        killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no data received by server failure"
         # /usr/bin/RestartANfeeder.sh;
     else
@@ -79,21 +69,26 @@ do
     fi
 
     # check the SOURCE_HOST connection
-    if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
+    # if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
+    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
     then
-        echo "[$APPNAME][$(date)] You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder at date $ts"
-        killall /home/py/ANfeeder
+        echo "[$APPNAME][$(date)] You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
+        killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
         [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $SOURCE_HOST can be reached! "
     fi
 
-
     # check if the RV_SERVER can be reached
-    if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
+    # Note - in the future we have to revisit this. `netcat -u` relies on ICMP Not Available messages from a UDP port to be
+    # returned in case of failure, and often these messages are not sent or are filtered on the way back.
+    # See https://serverfault.com/a/416269 for explanation
+    #
+    # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
+    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
     then
-        echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder at date $ts"
-        killall /home/py/ANfeeder
+        echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
+        killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="$RV_SERVER down failure"
     else
         [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $RV_SERVER can be reached! "

@@ -2,79 +2,21 @@
 #shellcheck shell=bash
 
 APPNAME="$(hostname)/radarvirtuel"
+RESTARTTIMER=10
+
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
-[[ "$VERBOSE" == "ON" ]] && verbose="-v" || verbose=""
 
-echo "[$APPNAME][$(date)] RadarVirtuel was started as an s6 service"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Source host: $SOURCE_HOST"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Verbose: ON"
+echo "[$APPNAME][$(date)] started as an s6 service"
 
-# Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
-source /opt/healthchecks-framework/healthchecks.sh
-
-# Get the correct version of ANfeeder in place:
-[[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) ! Container execution stopped." ; sleep infinity; } || \
-ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Architecture: $(dpkg --print-architecture) (supported)"
-
-# Let's do some checks to make sure the parameters look good, at least format-wise:
-# check FEEDER_KEY
-keyhash="${FEEDER_KEY##*:}"
-stid="${FEEDER_KEY%%:*}"
-if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
+set -eo pipefail
+if [[ "$VERBOSE" == "ON" ]]
 then
-    echo "|--------------------------------------|"
-    echo "|               STOP !!!!              |"
-    echo "|                                      |"
-    echo "| Your feeder key format is incorrect! |"
-    echo "|                                      |"
-    echo "|--------------------------------------|"
-    echo "It should consist of:"
-    echo "- 4-6 letters or numbers (you entered \"$stid\", which has ${#stid} characters)"
-    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$FEEDER_KEY")" != ":" ]] && echo -n "NOT "`enter)"
-    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"$keyhash\", which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
-    echo
-    echo "Please add the FEEDER_KEY parameter to your docker-compose.yml file and restart the container."
-    echo "[$APPNAME][$(date)] halted"
-    sleep infinity
+  exec /home/py/ANfeeder -v -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST 2>&1 | stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+  a=$?
+else
+  exec /home/py/ANfeeder -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST >/dev/null 2>&1  | stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+  a=$?
 fi
 
-# Now check SOURCE_HOST
-while [[ $(timeout --preserve-status 10 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
-do
-    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] While testing the SOURCE_HOST parameter, we ran into trouble:"
-    echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please make sure that"
-	echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
-    echo "[$APPNAME][$(date)]"
-    echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can ignore"
-    echo "[$APPNAME][$(date)] this as it is probably related to your SOURCE_HOST launching."
-    echo "[$APPNAME][$(date)]"
-    echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
-    echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
-    sleep 10
-done
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST"
-
-
-# Last, check RV_SERVER -- check for UDP connection success
-while [[ $(timeout --preserve-status 10 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
-do
-    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] While testing the RV_SERVER parameter, we ran into trouble:"
-    echo "[$APPNAME][$(date)] We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}."
-	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please"
-	echo "[$APPNAME][$(date)] make sure that your internet connection is still working."
-    sleep 10
-done
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] We are now starting the ANfeeder process"
-
-/home/py/ANfeeder $verbose -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST
-a=$?
-echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a"
+echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
+sleep $RESTARTTIMER
