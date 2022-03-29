@@ -8,6 +8,10 @@ MLAT_CMD="/usr/bin/mlat-client"
 MLAT_FLAG="/run/mlat-down"
 RESTARTTIMER=10
 
+[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE="auto" || true
+[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105" || true
+
+
 # Sleep forever if the initialization process found that MLAT cannot be started
 [[ -f $MLAT_FLAG ]] && sleep infinity || true
 
