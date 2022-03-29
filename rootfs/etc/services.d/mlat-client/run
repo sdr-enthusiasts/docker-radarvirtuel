@@ -22,7 +22,6 @@ MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
 
 [[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
-fi
 
 set -eo pipefail
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
