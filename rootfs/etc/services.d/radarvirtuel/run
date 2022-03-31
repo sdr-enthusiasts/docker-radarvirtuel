@@ -11,11 +11,10 @@ echo "[$APPNAME][$(date)] started as an s6 service"
 set -eo pipefail
 if [[ "$VERBOSE" == "ON" ]]
 then
-  exec /home/py/ANfeeder -v -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST 2>&1 | stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+  exec /home/py/ANfeeder -v -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
   a=$?
 else
-  exec /home/py/ANfeeder -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST >/dev/null 2>&1  | stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
-  a=$?
+  exec /home/py/ANfeeder -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST >/dev/null 2>&1  | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
 fi
 
 echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
