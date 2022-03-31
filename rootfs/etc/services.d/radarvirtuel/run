@@ -15,6 +15,7 @@ then
   a=$?
 else
   exec /home/py/ANfeeder -i $FEEDER_KEY -d $RV_SERVER -s $SOURCE_HOST >/dev/null 2>&1  | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
+  a=$?
 fi
 
 echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
