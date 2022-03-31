@@ -32,10 +32,10 @@ set -eo pipefail
 [[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}' || true
 if [[ "$VERBOSE" == "ON" ]]
 then
-   exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 |  stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+   exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
    a=$?
 else
-  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 |  stdbuf -o0 awk -v app="$APPNAME" -v date="$(date)" '{print "[" app "][" date "] " $0}'
+  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
   a=$?
 fi
 
