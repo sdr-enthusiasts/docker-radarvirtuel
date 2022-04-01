@@ -4,8 +4,8 @@
 APPNAME="$(hostname)/radarvirtuel"
 RESTARTTIMER=10
 
-[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
-
+[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050"
+[[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
 echo "[$APPNAME][$(date)] started as an s6 service"
 
 set -eo pipefail
