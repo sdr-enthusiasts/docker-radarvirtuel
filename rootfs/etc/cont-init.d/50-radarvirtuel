@@ -2,6 +2,7 @@
 #shellcheck shell=bash
 
 APPNAME="$(hostname)/init-radarvirtuel"
+<<<<<<< HEAD
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
 if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]
 then
@@ -13,6 +14,9 @@ then
   echo "[$APPNAME][$(date)] |            We will use mg22.adsbnetwork.com for this session.          |"
   echo "[$APPNAME][$(date)] +------------------------------------------------------------------------+"
 fi
+=======
+[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
+>>>>>>> acc4ffbec514ec9cf1c2c7e0072d97560fd61ba1
 
 echo "[$APPNAME][$(date)] Initializing RadarVirtuel..."
 [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
