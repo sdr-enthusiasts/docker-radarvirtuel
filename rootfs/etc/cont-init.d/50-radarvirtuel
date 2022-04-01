@@ -2,6 +2,19 @@
 #shellcheck shell=bash
 
 APPNAME="$(hostname)/init-radarvirtuel"
+
+[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
+if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]
+then
+  RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"
+  echo "[$APPNAME][$(date)] +------------------------------------------------------------------------+"
+  echo "[$APPNAME][$(date)] | ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |"
+  echo "[$APPNAME][$(date)] |            Please update the RV_SERVER parameter in docker-compose.yml |"
+  echo "[$APPNAME][$(date)] |            to \"mg22.adsbnetwork.com:${RV_SERVER##*:}\".                             |"
+  echo "[$APPNAME][$(date)] |            We will use mg22.adsbnetwork.com for this session.          |"
+  echo "[$APPNAME][$(date)] +------------------------------------------------------------------------+"
+fi
+
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
 
 echo "[$APPNAME][$(date)] Initializing RadarVirtuel..."
