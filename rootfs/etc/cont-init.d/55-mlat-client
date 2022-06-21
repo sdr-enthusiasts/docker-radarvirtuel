@@ -2,7 +2,6 @@
 # shellcheck shell=bash
 
 APPNAME="$(hostname)/init-mlat-client"
-echo "[$APPNAME][$(date)] Initializing mlat-client..."
 
 MLAT_FLAG="/run/mlat-down"
 MAX_TRIES=5
@@ -13,18 +12,17 @@ rm -f "$MLAT_FLAG"
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
 
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=auto
-[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105"
-
+[[ -z "${MLAT_INPUT_TYPE}" ]] && MLAT_INPUT_TYPE=auto
+[[ -z "${MLAT_RESULTS}" ]] && MLAT_RESULTS="beast,listen,30105"
 
 # Check: see if the parameters are correctly configured
-if [[ "${MLAT_HOST}" == "" ]]
+if [[ -z "${MLAT_HOST}" ]]
 then
     sleep 15    # let all other processes write to the logs before we do
     echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
     echo "[$APPNAME][$(date)] ATTENTION RADARVIRTUEL USERS!"
     echo "[$APPNAME][$(date)] Please update your docker-compose.yml with MLAT parameters."
-    echo "[$APPNAME][$(date)] This is a NEW FEATURE and we encourage you to use it!"
+    echo "[$APPNAME][$(date)] Yhis is a NEW FEATURE and we encourage you to use it!"
     echo "[$APPNAME][$(date)] "
     echo "[$APPNAME][$(date)] Here's how: add the following parameter to the environment section of"
     echo "[$APPNAME][$(date)] \"radarvirtuel:\""

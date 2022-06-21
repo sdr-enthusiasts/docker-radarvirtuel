@@ -8,15 +8,15 @@ MLAT_CMD="/usr/bin/mlat-client"
 MLAT_FLAG="/run/mlat-down"
 RESTARTTIMER=10
 
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE="auto" || true
-[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105" || true
+[[ -z "${MLAT_INPUT_TYPE}" ]] && MLAT_INPUT_TYPE="auto" || true
+[[ -z "${MLAT_RESULTS}" ]] && MLAT_RESULTS="beast,listen,30105" || true
 
 
 # Sleep forever if the initialization process found that MLAT cannot be started
 [[ -f $MLAT_FLAG ]] && sleep infinity || true
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
-# MLAT_PARAM+=(--no-udp)
+MLAT_PARAM+=(--no-udp)
 MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
 MLAT_PARAM+=(--server "${MLAT_SERVER}")
 MLAT_PARAM+=(--lat "${LAT}")
@@ -28,16 +28,15 @@ MLAT_PARAM+=(--user "${FEEDER_KEY}")
 [[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
 
 set -eo pipefail
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
-[[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}' || true
-if [[ "$VERBOSE" == "ON" ]]
+[[ "${VERBOSE,,}" == "on" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} " "${MLAT_PARAM[@]}" || true
+
+if [[ "${VERBOSE,,}" == "on" ]]
 then
-   exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-   a=$?
+  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" strftime("%F %T%z", systime()) "][" label "] " $0}'
+  echo "[$APPNAME][$(date)] MLAT-client exited with exit code ${PIPESTATUS[0]}. Attempting to restart in $RESTARTTIMER seconds"
 else
-  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-  a=$?
+  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" strftime("%F %T%z", systime()) "][" label "] " $0}'
+  echo "[$APPNAME][$(date)] MLAT-client exited with exit code ${PIPESTATUS[0]}. Attempting to restart in $RESTARTTIMER seconds"
 fi
 
-echo "[$APPNAME][$(date)] MLAT-client exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
 sleep $RESTARTTIMER

@@ -5,7 +5,7 @@ APPNAME="$(hostname)/imalive"
 KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
                       # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
-CONNECTION_TIMEOUT=10 # timeout when checking ability to connect using netcat
+TCPDUMP_TIMER=5       # time to check with tcpdump if data is flowing
 ALIVE=true
 mkdir -p /run/imalive
 touch /run/imalive/errors
@@ -29,12 +29,12 @@ do
     [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Running ImAlive..."
 
     ALIVE=true
-    host=$HOSTNAME ;
-    set $host;
+    host=$HOSTNAME
+    set $host
     # kx1t: retrieve station name from $FEEDER_KEY docker env variable
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
-    #echo " $st Current Time : $ts"
+    #$st Current Time : $ts"
     STATUS=$(curl -s ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st)
     status="${STATUS%%-*}"
     remote_timestamp="${STATUS##*-}"
@@ -42,12 +42,12 @@ do
     # check the ImAlive server:
     if grep -o "404 Not Found" <<< "$STATUS" >/dev/null 2>&1;
     then
-        echo  "[$APPNAME][$(date)] Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
+        echo "[$APPNAME][$(date)] Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
     elif [[ -z  $STATUS ]]
     then
-        echo  "[$APPNAME][$(date)] No Network failure. Restarting ANFeeder \"just in case\"..."
+        echo "[$APPNAME][$(date)] No Network failure. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no network failure"
     elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]
@@ -72,9 +72,9 @@ do
 
     # check the SOURCE_HOST connection
     # if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
-    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+    if [[ "$(grep captured <<< "$(timeout --preserve-status "$TCPDUMP_TIMER" tcpdump -p -i eth0 tcp port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
-        echo "[$APPNAME][$(date)] You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
+        echo "[$APPNAME][$(date)] Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
@@ -87,7 +87,7 @@ do
     # See https://serverfault.com/a/416269 for explanation
     #
     # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
-    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+    if [[ "$(grep captured <<< "$(timeout --preserve-status "$TCPDUMP_TIMER" tcpdump -p -i eth0 udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
         echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
