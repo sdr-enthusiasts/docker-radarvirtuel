@@ -25,7 +25,10 @@ MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
 
-[[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
+if [[ "${PRIVATE_MLAT,,}" == "false" ]] || [[ "${PRIVATE_MLAT,,}" == "off" ]]
+then
+  MLAT_PARAM+=(--privacy)
+fi
 
 set -eo pipefail
 [[ "${VERBOSE,,}" == "on" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} " "${MLAT_PARAM[@]}" || true

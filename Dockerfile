@@ -1,8 +1,8 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
-ENV URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git" \
-    PRIVATE_MLAT="false" \
-    MLAT_INPUT_TYPE="dump1090"
+ENV URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git"
+ENV PRIVATE_MLAT="false"
+ENV MLAT_INPUT_TYPE="dump1090"
 
 RUN set -x && \
 # define packages needed for installation and general management of the container:
@@ -11,7 +11,9 @@ RUN set -x && \
     KEPT_PACKAGES+=(procps nano aptitude) && \
     KEPT_PACKAGES+=(psmisc) && \
 # Git and net-tools are needed to install and run @Mikenye's HealthCheck framework
+# Tcpdump is needed for the watchdog
     TEMP_PACKAGES+=(git) && \
+    KEPT_PACKAGES+=(tcpdump) && \
 # These are needed to compile and install the mlat_client:
     TEMP_PACKAGES+=(build-essential) && \
     TEMP_PACKAGES+=(debhelper) && \
