@@ -6,7 +6,7 @@ KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
                       # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
 TCPDUMP_TIMER=5       # time to check with tcpdump if data is flowing
-ALIVE=true
+ALIVE=false           # make sure that we initially check after 60 secs, instead of 600 secs
 mkdir -p /run/imalive
 touch /run/imalive/errors
 echo "[$APPNAME][$(date)] Started as an s6 service"
@@ -23,7 +23,7 @@ do
     then
         echo "[$APPNAME][$(date)] ImAlive watchdog will sleep for $KEEPALIVE secs"
     else
-        [[ "$ALIVE" != "true" ]] && echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
+        [[ "$ALIVE" != "true" ]] && echo "[$APPNAME][$(date)] Shortened ImAlive watchdog ($KEEPALIVE secs) for this run"
     fi
     sleep $KEEPALIVE
     [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Running ImAlive..."
@@ -69,7 +69,7 @@ do
         ALIVE="no data received by server failure"
         # /usr/bin/RestartANfeeder.sh;
     else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Server can be reached! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Server can be reached!"
     fi
 
     # check the SOURCE_HOST connection
@@ -78,9 +78,9 @@ do
     then
         echo "[$APPNAME][$(date)] No data is flowing between your Beast Source $SOURCE_HOST and this container. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
+        ALIVE="no data flowing to SOURCE HOST $SOURCE_HOST"
     else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Data is flowing between your Beast Source $SOURCE_HOST and this container "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Data is flowing between your Beast Source $SOURCE_HOST and this container"
     fi
 
     # check if the RV_SERVER can be reached
