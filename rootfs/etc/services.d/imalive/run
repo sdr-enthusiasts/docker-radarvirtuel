@@ -47,9 +47,11 @@ do
         ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
     elif [[ -z  $STATUS ]]
     then
-        echo "[$APPNAME][$(date)] No Network failure. Restarting ANFeeder \"just in case\"..."
+        # ping once more to get the error code:
+        ERRORSTRING="$(curl -sL ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st -I | head -1)"
+        echo "[$APPNAME][$(date)] Server error: $ERRORSTRING. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="no network failure"
+        ALIVE="no network failure - $ERRORSTRING"
     elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]
     then
         # kx1t: using s6 to restart the service instead of the RestartANfeeder.sh script
@@ -67,18 +69,18 @@ do
         ALIVE="no data received by server failure"
         # /usr/bin/RestartANfeeder.sh;
     else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Server connection is fine! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Server can be reached! "
     fi
 
     # check the SOURCE_HOST connection
     # if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
     if [[ "$(grep captured <<< "$(timeout --preserve-status "$TCPDUMP_TIMER" tcpdump -p -i eth0 tcp port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
-        echo "[$APPNAME][$(date)] Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
+        echo "[$APPNAME][$(date)] No data is flowing between your Beast Source $SOURCE_HOST and this container. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $SOURCE_HOST can be reached! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Data is flowing between your Beast Source $SOURCE_HOST and this container "
     fi
 
     # check if the RV_SERVER can be reached
@@ -89,11 +91,11 @@ do
     # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
     if [[ "$(grep captured <<< "$(timeout --preserve-status "$TCPDUMP_TIMER" tcpdump -p -i eth0 udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
-        echo "[$APPNAME][$(date)] The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
+        echo "[$APPNAME][$(date)] No data is flowing between this container and the RadarVirtuel server at $RV_SERVER. Restarting ANfeeder!"
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="$RV_SERVER down failure"
     else
-        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] $RV_SERVER can be reached! "
+        [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Data is flowing between this container and the RadarVirtuel server at $RV_SERVER"
     fi
 
     [[ "$ALIVE" != "true" ]] && echo "$(date +%s) - $ALIVE" >> /run/imalive/errors || echo "" > /run/imalive/errors
