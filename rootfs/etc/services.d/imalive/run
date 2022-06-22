@@ -48,7 +48,7 @@ do
     elif [[ -z  $STATUS ]]
     then
         # ping once more to get the error code:
-        ERRORSTRING="$(curl -sL ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st -I | head -1)"
+        ERRORSTRING="$(curl -sL ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st -I | head -1 | tr -cd '[:print:]')"
         echo "[$APPNAME][$(date)] Server error: $ERRORSTRING. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no network failure - $ERRORSTRING"
