@@ -151,7 +151,7 @@ jobs:
   #         platforms: ${{ matrix.docker-platform }}
   #         push: ${{ github.event_name != 'pull_request' }}
   #         tags: ghcr.io/sdr-enthusiasts/docker-radarvirtuel:latest_${{ env.ARCH_TAG }}
-          labels: ${{ steps.meta.outputs.labels }}
+          # labels: ${{ steps.meta.outputs.labels }}
 
   deploy_dockerhub_multiarch:
     name: Deploy to DockerHub (Multi-Arch)
