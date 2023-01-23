@@ -27,7 +27,7 @@ on:
 #  - REPO: repo name on dockerhub
 #  - IMAGE: image name on dockerhub
 env:
-  DOCKERHUB_REPO: sdr-enthusiasts
+  DOCKERHUB_REPO: kx1t
   DOCKERHUB_IMAGE: radarvirtuel
   GHCR_IMAGE: sdr-enthusiasts/radarvirtuel
   GHCR_REGISTRY: ghcr.io
