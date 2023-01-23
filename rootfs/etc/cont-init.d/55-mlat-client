@@ -63,7 +63,7 @@ if [[ "$MLAT_OK" != "true" ]]
 then
   echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
   echo "[$APPNAME][$(date)] MLAT will not start: cannot reach MLAT source host ${MLAT_HOST} after $MAX_RETRIES"
-  touch "$MLAT_FLAG"
+  echo "temp" > "$MLAT_FLAG"
   exit 0
 fi
 
@@ -87,7 +87,7 @@ if [[ "$MLAT_OK" != "true" ]]
 then
   echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
   echo "[$APPNAME][$(date)] MLAT will not start: cannot reach MLAT server ${MLAT_HOST} after $MAX_RETRIES"
-  touch "$MLAT_FLAG"
+  echo "temp" > "$MLAT_FLAG"
   exit 0
 fi
 
