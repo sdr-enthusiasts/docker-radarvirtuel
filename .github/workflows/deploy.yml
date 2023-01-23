@@ -29,7 +29,7 @@ on:
 env:
   DOCKERHUB_REPO: kx1t
   DOCKERHUB_IMAGE: radarvirtuel
-  GHCR_IMAGE: sdr-enthusiasts/radarvirtuel
+  GHCR_IMAGE: sdr-enthusiasts/docker-radarvirtuel
   GHCR_REGISTRY: ghcr.io
 
 jobs:
