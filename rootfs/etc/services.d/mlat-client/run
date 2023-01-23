@@ -17,11 +17,10 @@ RESTARTTIMER=10
 # Sleep for 5 minutes if the issue is that the config is correct but the server is down
 if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
 then
-	sleep 600
-  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]] || [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_HOST%%:*} ${MLAT_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
 	then
-		# exit normal so this s6 process is restarted
-		echo "[$APPNAME][$(date)] MLAT server is still down. Restarting $APPNAME and trying again in 5 minutes"
+		echo "[$APPNAME][$(date)] MLAT host or server is still down. Trying again in 5 minutes"
+		sleep 6300
 		exit 0
 	fi
 else
