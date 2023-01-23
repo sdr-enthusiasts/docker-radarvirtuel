@@ -11,9 +11,22 @@ RESTARTTIMER=10
 [[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE="auto" || true
 [[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105" || true
 
-
+# Do some basic checks:
 # Sleep forever if the initialization process found that MLAT cannot be started
-[[ -f $MLAT_FLAG ]] && sleep infinity || true
+[[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]] && sleep infinity || true
+# Sleep for 5 minutes if the issue is that the config is correct but the server is down
+if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
+then
+	sleep 600
+  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+	then
+		# exit normal so this s6 process is restarted
+		echo "[$APPNAME][$(date)] MLAT server is still down. Restarting $APPNAME and trying again in 5 minutes"
+		exit 0
+	fi
+else
+	rm -f ${MLAT_FLAG}
+fi
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
 # MLAT_PARAM+=(--no-udp)
