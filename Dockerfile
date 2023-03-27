@@ -1,6 +1,6 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 
-ENV URL_MLAT_CLIENT_REPO="https://github.com/adsbxchange/mlat-client.git" \
+ENV URL_MLAT_CLIENT_REPO="https://github.com/wiedehopf/mlat-client.git" \
     PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
 
