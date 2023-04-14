@@ -36,6 +36,7 @@ MLAT_PARAM+=(--lon "${LON}")
 MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
+MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
 
 [[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
 
