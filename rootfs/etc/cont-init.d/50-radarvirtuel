@@ -3,7 +3,7 @@
 
 source /scripts/common
 
-APPNAME="init-radarvirtuel"
+APPNAME="50-radarvirtuel"
 
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
 if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]
@@ -24,10 +24,10 @@ fi
 s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Initializing RadarVirtuel..."
 if chk_enabled "${VERBOSE}"; then
   s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
-Feeder key:          $FEEDER_KEY
-Source host:         $SOURCE_HOST
-RadarVirtuel Server: $RV_SERVER
-Verbose:             $VERBOSE
+Feeder key:          ${FEEDER_KEY}
+Source host:         ${SOURCE_HOST}
+RadarVirtuel Server: ${RV_SERVER}
+Verbose:             ${VERBOSE}
 EOF
 fi
 
@@ -39,14 +39,14 @@ else
   ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
 fi
 if chk_enabled "${VERBOSE}"; then
-  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Architecture: $(dpkg --print-architecture) (supported)"
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Architecture:        $(dpkg --print-architecture) (supported)"
 fi
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
 keyhash="${FEEDER_KEY##*:}"
 stid="${FEEDER_KEY%%:*}"
-if [[ ! $keyhash  =~ ^[a-fA-F0-9]{32}$ ]] || [[ ! $stid =~ [^0-9A-Za-z]* ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]; then
+if [[ ! ${keyhash}  =~ ^[a-fA-F0-9]{32}$ ]] || [[ ! ${stid} =~ [^0-9A-Za-z]* ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]; then
   s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
 |--------------------------------------|
 |               STOP !!!!              |
@@ -55,9 +55,9 @@ if [[ ! $keyhash  =~ ^[a-fA-F0-9]{32}$ ]] || [[ ! $stid =~ [^0-9A-Za-z]* ]] || [
 |                                      |
 |--------------------------------------|
 It should consist of:
-- 4-6 letters or numbers (you entered \"$stid\", which has ${#stid} characters)
-- followed by a single : (which you did$( [[ "$FEEDER_KEY" != *:* ]] && echo -n " NOT" || true)" enter)
-- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"$keyhash\", which has ${#keyhash} characters$( [[ ! $keyhash  =~ ^[a-fA-F0-9]*$ ]] && echo " and which contains illegal characters" || true).
+- 4-6 letters or numbers (you entered "${stid}", which has ${#stid} characters)
+- followed by a single : (which you did$( [[ "${FEEDER_KEY}" != *:* ]] && echo -n " NOT" || true)" enter)
+- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"${keyhash}\", which has ${#keyhash} characters$( [[ ! ${keyhash}  =~ ^[a-fA-F0-9]*$ ]] && echo " and which contains illegal characters" || true).
 
 Please add the correct FEEDER_KEY parameter to your docker-compose.yml file and restart the container.
 Container halted
@@ -106,7 +106,7 @@ done
 if chk_enabled "${VERBOSE}"; then
   s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
 ---------------------------------------------------------------
-RV_SERVER checked. Connection can be established at $RV_SERVER
+RV_SERVER checked. Connection can be established at ${RV_SERVER}
 We are now starting the ANfeeder process
 EOF
 fi
