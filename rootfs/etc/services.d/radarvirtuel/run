@@ -1,22 +1,18 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145
 
-APPNAME="$(hostname)/radarvirtuel"
-RESTARTTIMER=10
+source /scripts/common
 
-[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050"
+APPNAME="radarvirtuel"
+START_DELAY=5s
+
+RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
 echo "[$APPNAME][$(date)] started as an s6 service"
-
-set -eo pipefail
+sleep ${START_DELAY}
 if [[ "$VERBOSE" == "ON" ]]
 then
-  exec /home/py/ANfeeder -v -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}" 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-  a=$?
+  exec s6wrap --quiet --prepend="${APPNAME}" --timestamps --args /home/py/ANfeeder -v -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 else
-  exec /home/py/ANfeeder -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}" >/dev/null 2>&1  | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-  a=$?
+  exec s6wrap --quiet --ignore=stdout --prepend="${APPNAME}" --timestamps --args /home/py/ANfeeder -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 fi
-
-echo "[$APPNAME][$(date)] ANfeeder exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
-sleep $RESTARTTIMER

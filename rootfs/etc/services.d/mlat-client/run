@@ -1,15 +1,18 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145
 
-APPNAME="$(hostname)/mlat-client"
-echo "[$APPNAME][$(date)] Started as an s6 service"
+source /scripts/common
+
+APPNAME="/mlat-client"
+s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Started as an s6 service"
 
 MLAT_CMD="/usr/bin/mlat-client"
 MLAT_FLAG="/run/mlat-down"
-RESTARTTIMER=10
 
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE="auto" || true
-[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105" || true
+MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
+MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
+
+START_DELAY=10s
 
 # Do some basic checks:
 # Sleep forever if the initialization process found that MLAT cannot be started
@@ -17,14 +20,15 @@ RESTARTTIMER=10
 # Sleep for 5 minutes if the issue is that the config is correct but the server is down
 if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
 then
-  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]] || [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_HOST%%:*} ${MLAT_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+	if [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_SERVER%%:*}" "${MLAT_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]] \
+  		|| [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_HOST%%:*}" "${MLAT_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
 	then
-		echo "[$APPNAME][$(date)] MLAT host or server is still down. Trying again in 5 minutes"
-		sleep 6300
+		s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "MLAT host or server is still down. Trying again in 5 minutes"
+		sleep 5m
 		exit 0
 	fi
 else
-	rm -f ${MLAT_FLAG}
+	rm -f "${MLAT_FLAG}"
 fi
 
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
@@ -37,20 +41,13 @@ MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
 MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
-
 [[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
 
-set -eo pipefail
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}" || true
-[[ "$VERBOSE" != "ON" ]] && exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 1>/dev/null | stdbuf -o0 awk -v app="$APPNAME" '{print "[" app "] " $0}' || true
-if [[ "$VERBOSE" == "ON" ]]
-then
-   exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-   a=$?
-else
-  exec "${MLAT_CMD}" "${MLAT_PARAM[@]}" >/dev/null 2>&1 | stdbuf -o0 awk -v label=${APPNAME} '{print "[" label "][" strftime("%F %T%z", systime()) "] " $0}'
-  a=$?
-fi
+sleep ${START_DELAY}
 
-echo "[$APPNAME][$(date)] MLAT-client exited with exit code $a. Attempting to restart in $RESTARTTIMER seconds"
-sleep $RESTARTTIMER
+if chk_enabled "${VERBOSE}"; then
+	s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}"
+	exec s6wrap --quiet --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"
+else
+	exec s6wrap --quiet --ignore=stdout --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"	
+fi

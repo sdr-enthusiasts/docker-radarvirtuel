@@ -23,7 +23,7 @@ RUN set -x && \
     apt-get install -q --force-yes -y \
         ${KEPT_PACKAGES[@]} \
         ${TEMP_PACKAGES[@]} && \
-
+#
 # Compile and Install the mlat_client
     mkdir -p /git && \
     pushd /git && \
@@ -33,7 +33,6 @@ RUN set -x && \
       ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
     popd && \
     rm -rf /git && \
-
 #
 # Clean up
     apt-get remove -q -y ${TEMP_PACKAGES[@]} && \

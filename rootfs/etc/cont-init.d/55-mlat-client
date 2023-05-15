@@ -1,8 +1,10 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145
 
-APPNAME="$(hostname)/init-mlat-client"
-echo "[$APPNAME][$(date)] Initializing mlat-client..."
+source /scripts/common
+
+APPNAME="55-mlat-client"
+s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Initializing mlat-client..."
 
 MLAT_FLAG="/run/mlat-down"
 MAX_TRIES=5
@@ -13,31 +15,31 @@ rm -f "$MLAT_FLAG"
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
 
-[[ "${MLAT_INPUT_TYPE}" == "" ]] && MLAT_INPUT_TYPE=auto
-[[ "${MLAT_RESULTS}" == "" ]] && MLAT_RESULTS="beast,listen,30105"
-
+MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
+MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
 
 # Check: see if the parameters are correctly configured
-if [[ "${MLAT_HOST}" == "" ]]
+if [[ -z "${MLAT_HOST}" ]]
 then
-    sleep 15    # let all other processes write to the logs before we do
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] ATTENTION RADARVIRTUEL USERS!"
-    echo "[$APPNAME][$(date)] Please update your docker-compose.yml with MLAT parameters."
-    echo "[$APPNAME][$(date)] This is a NEW FEATURE and we encourage you to use it!"
-    echo "[$APPNAME][$(date)] "
-    echo "[$APPNAME][$(date)] Here's how: add the following parameter to the environment section of"
-    echo "[$APPNAME][$(date)] \"radarvirtuel:\""
-    cat <<EOF
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+-------------------------------------------------------------------
+ATTENTION RADARVIRTUEL USERS!
+Please update your docker-compose.yml with MLAT parameters.
+This is a NEW FEATURE and we encourage you to use it!
+
+Here's how: add the following parameter to the environment section of
+radarvirtuel:
+
     - MLAT_SERVER=mlat.adsbnetwork.com:50000    # Don't change this unless someone tells you to
     - MLAT_HOST=\${HOSTNAME}:30005              # This is the same hostname as for SOURCE_HOST, but now using port 30005
     - LAT=42.123456789                          # This is your station latitude
     - LON=-71.123456789                         # This is your station longtude
     - ALT=40ft                                  # This is your antenna altitude above the ellipoid (MSL) - use "ft" for feet or "m" for meters
+
+Please reach out to kx1t (at) amsat.org with any support questions"
+-------------------------------------------------------------------"
+MLAT will not start: not or incorrectly configured"
 EOF
-    echo "[$APPNAME][$(date)] Please reach out to kx1t (at) amsat.org with any support questions"
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] MLAT will not start: not or incorrectly configured"
     touch "$MLAT_FLAG"
     exit 0
 fi
@@ -45,51 +47,54 @@ fi
 # Check: see if MLAT source host can be reached. Note - this may fail a few times if the source container is started in parallel with the
 # RV container
 MLAT_OK=""
-for (( i=1; i<=$MAX_TRIES; i++ ))
+for (( i=1; i<=MAX_TRIES; i++ ))
 do
-  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_HOST%%:*} ${MLAT_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+  if [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_HOST%%:*}" "${MLAT_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
   then
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] Attempt $i/$MAX_RETRIES: MLAT source host ${MLAT_HOST} cannot be reached. Trying again in $RETRY_INTERVAL seconds."
-    sleep $RETRY_INTERVAL
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "-------------------------------------------------------------------"
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Attempt $i/$MAX_TRIES: MLAT source host ${MLAT_HOST} cannot be reached. Trying again in $RETRY_INTERVAL seconds."
+    sleep ${RETRY_INTERVAL}
   else
     MLAT_OK=true
-    i=$MAX_TRIES+1
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------" || true
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] MLAT source host checked. Connection can be established at ${MLAT_HOST}" || true
+    i="$((MAX_TRIES + 1 ))"
+    if chk_enabled "${VERBOSE}"; then
+      s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "---------------------------------------------------------------"
+      s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "MLAT source host checked. Connection can be established at ${MLAT_HOST}"
+    fi
   fi
 done
 if [[ "$MLAT_OK" != "true" ]]
 then
-  echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-  echo "[$APPNAME][$(date)] MLAT will not start: cannot reach MLAT source host ${MLAT_HOST} after $MAX_RETRIES"
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "-------------------------------------------------------------------"
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "MLAT will not start: cannot reach MLAT source host ${MLAT_HOST} after $MAX_TRIES"
   echo "temp" > "$MLAT_FLAG"
   exit 0
 fi
 
 # Check: see if remote MLAT server can be reached
 MLAT_OK=""
-for (( i=1; i<=$MAX_TRIES; i++ ))
+for (( i=1; i<="${MAX_TRIES}"; i++ ))
 do
-  if [[ $(timeout --preserve-status 10 netcat -z -v ${MLAT_SERVER%%:*} ${MLAT_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+  if [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_SERVER%%:*}" "${MLAT_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
   then
-    echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] Attempt $i/$MAX_RETRIES: MLAT server ${MLAT_SERVER} cannot be reached. Trying again in $RETRY_INTERVAL seconds."
-    sleep $RETRY_INTERVAL
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "-------------------------------------------------------------------"
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Attempt $i/$MAX_TRIES: MLAT server ${MLAT_SERVER} cannot be reached. Trying again in $RETRY_INTERVAL seconds."
+    sleep "${RETRY_INTERVAL}"
   else
-    MLAT_OK=true
-    i=$MAX_TRIES+1
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------" || true
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Remote MLAT server checked. Connection can be established at ${MLAT_SERVER}" || true
+    MLAT_OK="true"
+    i="$((MAX_TRIES + 1))"
+    if chk_enabled "${VERBOSE}"; then
+      s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "---------------------------------------------------------------"
+      s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Remote MLAT server checked. Connection can be established at ${MLAT_SERVER}"
+    fi
   fi
 done
-if [[ "$MLAT_OK" != "true" ]]
-then
-  echo "[$APPNAME][$(date)] -------------------------------------------------------------------"
-  echo "[$APPNAME][$(date)] MLAT will not start: cannot reach MLAT server ${MLAT_HOST} after $MAX_RETRIES"
+if [[ "$MLAT_OK" != "true" ]]; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "-------------------------------------------------------------------"
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "MLAT will not start: cannot reach MLAT server ${MLAT_HOST} after $MAX_TRIES"
   echo "temp" > "$MLAT_FLAG"
   exit 0
 fi
 
 # If we get to here, then everything worked out OK
-echo "[$APPNAME][$(date)] mlat-client initialization complete."
+s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "mlat-client initialization complete."
