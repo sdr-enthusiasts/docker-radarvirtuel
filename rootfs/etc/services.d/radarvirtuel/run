@@ -8,7 +8,8 @@ START_DELAY=5s
 
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
-echo "[$APPNAME][$(date)] started as an s6 service"
+s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "started as an s6 service"
+
 sleep ${START_DELAY}
 if [[ "$VERBOSE" == "ON" ]]
 then

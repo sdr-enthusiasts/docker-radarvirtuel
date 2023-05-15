@@ -3,7 +3,7 @@
 
 source /scripts/common
 
-APPNAME="/mlat-client"
+APPNAME="mlat-client"
 s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Started as an s6 service"
 
 MLAT_CMD="/usr/bin/mlat-client"

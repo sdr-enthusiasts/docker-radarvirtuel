@@ -1,86 +1,114 @@
 #!/usr/bin/with-contenv bash
-#shellcheck shell=bash
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145
 
-APPNAME="$(hostname)/init-radarvirtuel"
+source /scripts/common
+
+APPNAME="init-radarvirtuel"
 
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
 if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]
 then
   RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"
-  echo "[$APPNAME][$(date)] +------------------------------------------------------------------------+"
-  echo "[$APPNAME][$(date)] | ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |"
-  echo "[$APPNAME][$(date)] |            Please update the RV_SERVER parameter in docker-compose.yml |"
-  echo "[$APPNAME][$(date)] |            to \"mg22.adsbnetwork.com:${RV_SERVER##*:}\".                             |"
-  echo "[$APPNAME][$(date)] |            We will use mg22.adsbnetwork.com for this session.          |"
-  echo "[$APPNAME][$(date)] +------------------------------------------------------------------------+"
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
++------------------------------------------------------------------------+
+| ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
+| Please update the RV_SERVER parameter in docker-compose.yml            |
+| to: "mg22.adsbnetwork.com:${RV_SERVER##*:}".                           |
+| We will use mg22.adsbnetwork.com for this session.                     |
++------------------------------------------------------------------------+
+EOF
 fi
 
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
 
-echo "[$APPNAME][$(date)] Initializing RadarVirtuel..."
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Feeder key: $FEEDER_KEY"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Source host: $SOURCE_HOST"
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RadarVirtuel Server: $RV_SERVER"
-echo "[$APPNAME][$(date)] Verbose: $VERBOSE"
+s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Initializing RadarVirtuel..."
+if chk_enabled "${VERBOSE}"; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+Feeder key:          $FEEDER_KEY
+Source host:         $SOURCE_HOST
+RadarVirtuel Server: $RV_SERVER
+Verbose:             $VERBOSE
+EOF
+fi
 
 # Get the correct version of ANfeeder in place:
-[[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]] && { echo "Error - target arch not supported for $(dpkg --print-architecture) ! Container execution stopped." ; exit 1; } || \
-ln -sf /home/py/ANfeeder-raspy-$(dpkg --print-architecture) /home/py/ANfeeder
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Architecture: $(dpkg --print-architecture) (supported)"
+if [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]]; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "ERROR: target architecture not supported for $(dpkg --print-architecture) ! Container execution stopped."
+  exit 1
+else
+  ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
+fi
+if chk_enabled "${VERBOSE}"; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Architecture: $(dpkg --print-architecture) (supported)"
+fi
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
 # check FEEDER_KEY
 keyhash="${FEEDER_KEY##*:}"
 stid="${FEEDER_KEY%%:*}"
-if [[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] || [[ "${#keyhash}" != "32" ]] || [[ "$stid" != "$(sed 's/[^0-9A-Za-z]//g' <<< "$stid")" ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]
-then
-    echo "|--------------------------------------|"
-    echo "|               STOP !!!!              |"
-    echo "|                                      |"
-    echo "| Your feeder key format is incorrect! |"
-    echo "|                                      |"
-    echo "|--------------------------------------|"
-    echo "It should consist of:"
-    echo "- 4-6 letters or numbers (you entered \"$stid\", which has ${#stid} characters)"
-    echo "- followed by a single : (which you did `[[ "$(sed 's/[^:]//g' <<< "$FEEDER_KEY")" != ":" ]] && echo -n "NOT "`enter)"
-    echo "- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"$keyhash\", which has ${#keyhash} characters`[[ "$keyhash" != "$(sed 's/[^0-9A-Fa-f]//g' <<< "$keyhash")" ]] && echo -n " and contains invalid characters"`)."
-    echo
-    echo "Please add the FEEDER_KEY parameter to your docker-compose.yml file and restart the container."
-    echo "[$APPNAME][$(date)] halted"
+if [[ ! $keyhash  =~ ^[a-fA-F0-9]{32}$ ]] || [[ ! $stid =~ [^0-9A-Za-z]* ]] || [[ "${#stid}" -gt "6" ]] || [[ "${#stid}" -lt "4" ]]; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+|--------------------------------------|
+|               STOP !!!!              |
+|                                      |
+| Your feeder key format is incorrect! |
+|                                      |
+|--------------------------------------|
+It should consist of:
+- 4-6 letters or numbers (you entered \"$stid\", which has ${#stid} characters)
+- followed by a single : (which you did$( [[ "$FEEDER_KEY" != *:* ]] && echo -n " NOT" || true)" enter)
+- followed by 32 hexadecimal numbers [0-9A-F] (you entered \"$keyhash\", which has ${#keyhash} characters$( [[ ! $keyhash  =~ ^[a-fA-F0-9]*$ ]] && echo " and which contains illegal characters" || true).
+
+Please add the correct FEEDER_KEY parameter to your docker-compose.yml file and restart the container.
+Container halted
+EOF
     exit 1
 fi
 
 # Now check SOURCE_HOST
-while [[ $(timeout --preserve-status 10 netcat -z -v ${SOURCE_HOST%%:*} ${SOURCE_HOST##*:} 2>/dev/null ; echo $?) != "0" ]]
+while [[ $(timeout --preserve-status 10 netcat -z -v "${SOURCE_HOST%%:*}" "${SOURCE_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
 do
-    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] While testing the SOURCE_HOST parameter, we ran into trouble:"
-    echo "[$APPNAME][$(date)] We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}."
-  	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please make sure that"
-	  echo "[$APPNAME][$(date)] readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!"
-    echo "[$APPNAME][$(date)]"
-    echo "[$APPNAME][$(date)] If you see this only a few times at startup, and then not again, then you can ignore"
-    echo "[$APPNAME][$(date)] this as it is probably related to your SOURCE_HOST launching."
-    echo "[$APPNAME][$(date)]"
-    echo "[$APPNAME][$(date)] Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use"
-    echo "[$APPNAME][$(date)] a name or a real IP address, for example \"readsb:30002\" or \"192.168.0.99:30002\"."
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+---------------------------------------------------------------
+While testing the SOURCE_HOST parameter, we ran into trouble:
+We cannot reach ${SOURCE_HOST%%:*} on port ${SOURCE_HOST##*:}.
+We will retry every 10 seconds. If this error keeps on repeating, please make sure that
+readsb/dump1090[-fa]/tar1090 is running and producing RAW (AVR) data on port ${SOURCE_HOST##*:}!
+
+If you see this only a few times at startup, and then not again, then you can ignore
+this as it is probably related to your SOURCE_HOST launching.
+
+Another hint: SOURCE_HOST in docker-compose.yml cannot point at 127.0.0.1. You MUST use
+a name or a real IP address, for example "readsb:30002" or "192.168.0.99:30002".
+EOF
     sleep 10
 done
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------" || true
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] SOURCE_HOST checked. Connection can be established at $SOURCE_HOST" || true
+if chk_enabled "${VERBOSE}"; then
+    s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+---------------------------------------------------------------
+SOURCE_HOST checked. Connection can be established at $SOURCE_HOST
+EOF
+fi
 
 # Last, check RV_SERVER -- check for UDP connection success
-while [[ $(timeout --preserve-status 10 netcat -u -z -v ${RV_SERVER%%:*} ${RV_SERVER##*:} 2>/dev/null ; echo $?) != "0" ]]
+while [[ $(timeout --preserve-status 10 netcat -u -z -v "${RV_SERVER%%:*}" "${RV_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
 do
-    echo "[$APPNAME][$(date)] ---------------------------------------------------------------"
-    echo "[$APPNAME][$(date)] While testing the RV_SERVER parameter, we ran into trouble:"
-    echo "[$APPNAME][$(date)] We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}."
-  	echo "[$APPNAME][$(date)] We will retry every 10 seconds. If this error keeps on repeating, please"
-	  echo "[$APPNAME][$(date)] make sure that your internet connection is still working."
-    sleep 10
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+---------------------------------------------------------------
+While testing the RV_SERVER parameter, we ran into trouble:
+We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}.
+We will retry every 10 seconds. If this error keeps on repeating, please
+make sure that your internet connection is still working.
+EOF
+  sleep 10
 done
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] ---------------------------------------------------------------" || true
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] RV_SERVER checked. Connection can be established at $RV_SERVER" || true
-[[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] We are now starting the ANfeeder process" || true
 
-echo "[$APPNAME][$(date)] RadarVirtuel initialization complete."
+if chk_enabled "${VERBOSE}"; then
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args cat <<EOF
+---------------------------------------------------------------
+RV_SERVER checked. Connection can be established at $RV_SERVER
+We are now starting the ANfeeder process
+EOF
+fi
+
+  s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "RadarVirtuel initialization complete."
