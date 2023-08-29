@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/command/with-contenv bash
 
 # Import healthchecks-framework
 source /opt/healthchecks-framework/healthchecks.sh
