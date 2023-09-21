@@ -78,7 +78,8 @@ do
 
     # check the SOURCE_HOST connection
     # if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
-    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v "${SOURCE_HOST%%:*}" "${SOURCE_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
+    # if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v "${SOURCE_HOST%%:*}" "${SOURCE_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
+    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p src "${SOURCE_HOST%%:*}" and port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
@@ -91,6 +92,8 @@ do
     # Note - in the future we have to revisit this. `netcat -u` relies on ICMP Not Available messages from a UDP port to be
     # returned in case of failure, and often these messages are not sent or are filtered on the way back.
     # See https://serverfault.com/a/416269 for explanation
+    #
+    # In reality, false passes of this check aren't too important as we already pinged the ImAlive server to see that they think the connection is OK
     #
     # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
     if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -u -z -v "${RV_SERVER%%:*}" "${RV_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
