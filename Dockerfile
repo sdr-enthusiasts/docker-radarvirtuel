@@ -4,6 +4,7 @@ ENV URL_MLAT_CLIENT_REPO="https://github.com/wiedehopf/mlat-client.git" \
     PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
 
+# hadolint ignore=DL3008,SC2086,SC2039,SC2068,DL3003,DL3015,SC3054
 RUN set -x && \
     # define packages needed for installation and general management of the container:
     TEMP_PACKAGES=() && \

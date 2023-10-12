@@ -49,5 +49,5 @@ if chk_enabled "${VERBOSE}"; then
 	s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}"
 	exec s6wrap --quiet --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"
 else
-	exec s6wrap --quiet --ignore=stdout --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"	
+	exec s6wrap --quiet --ignore=stdout --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"
 fi

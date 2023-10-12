@@ -1,9 +1,9 @@
 {
-    "host": "pete",
-    "port": 22,
-    "user": "docker",
-    "ignore":[".git",".vscode"],
-    "remotePath": "~",
-    "identity_file": "~/.ssh/id_rsa",
-    "uploadOnSave": true
+  "host": "pete",
+  "port": 22,
+  "user": "docker",
+  "ignore": [".git", ".vscode"],
+  "remotePath": "~",
+  "identity_file": "~/.ssh/id_rsa",
+  "uploadOnSave": true
 }

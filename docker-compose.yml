@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 #
 # If you are using the readsb container to pull your feed from, you may have add the following environment
@@ -6,7 +6,7 @@ version: '3.8'
 #      - READSB_NET_BEAST_OUTPUT_PORT=30005
 #      - READSB_NET_RAW_OUTPUT_PORT=30002
 #
-# Also, it assumes that you have added the following parameters to your `.env` file., or made available in this docker-compose.yml file: 
+# Also, it assumes that you have added the following parameters to your `.env` file., or made available in this docker-compose.yml file:
 #
 # RV_FEEDER_KEY=xxxx:123456789ABCDEF
 # FEEDER_LAT=12.345678
