@@ -41,7 +41,7 @@ do
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    STATUS=$(curl -s "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="$st")
+    STATUS=$(curl -s "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}")
     # STATUS now contains either "ok-12345678" or "ko-12345678"
     # where ok/ko means OK or not OK and 12345678 is the secs since epoch
     # STATUS can also contain the error page if the server returns an error
