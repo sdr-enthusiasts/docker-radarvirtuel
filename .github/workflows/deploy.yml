@@ -21,6 +21,7 @@ on:
       - "**.md"
       - "**.MD"
       - "**.yml"
+      - "**.yaml"
       - "LICENSE"
       - ".gitattributes"
       - ".gitignore"
