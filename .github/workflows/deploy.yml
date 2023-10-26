@@ -17,15 +17,11 @@ on:
     branches:
       - main
     # Don't trigger if it's just a documentation update
-    paths-ignore:
-      - "**.md"
-      - "**.MD"
-      - "**.yml"
-      - "**.yaml"
-      - "LICENSE"
-      - ".gitattributes"
-      - ".gitignore"
-      - ".dockerignore"
+    paths:
+      - "rust/**"
+      - "Dockerfile**"
+      - "rootfs/**"
+
   workflow_call:
   repository_dispatch:
     types: build_on_dep_container_update
