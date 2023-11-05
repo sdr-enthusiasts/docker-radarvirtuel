@@ -13,6 +13,7 @@ mkdir -p /run/imalive
 touch /run/imalive/errors
 s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Started as an s6 service"
 
+RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
 
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
