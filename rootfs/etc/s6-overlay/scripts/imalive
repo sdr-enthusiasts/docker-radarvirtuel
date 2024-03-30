@@ -1,9 +1,8 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash disable=SC1091,SC2015,SC2145
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145,SC2154
 
 source /scripts/common
 
-APPNAME="imalive"
 KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
                       # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
@@ -11,7 +10,7 @@ CONNECTION_TIMEOUT=10 # timeout when checking ability to connect using netcat
 ALIVE=true
 mkdir -p /run/imalive
 touch /run/imalive/errors
-s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Started as an s6 service"
+"${s6wrap[@]}" echo "Started as an s6 service"
 
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
@@ -28,13 +27,13 @@ do
     fi
 
     if chk_enabled "${VERBOSE}"; then
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "ImAlive watchdog will sleep for $KEEPALIVE secs"
+        "${s6wrap[@]}" echo "ImAlive watchdog will sleep for $KEEPALIVE secs"
     elif [[ "${ALIVE}" != "true" ]]; then
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
+        "${s6wrap[@]}" echo "Shortened ImAlive watchdog ($KEEPALIVE secs) because of errors during last run"
     fi
     sleep "${KEEPALIVE}"
     if chk_enabled "${VERBOSE}"; then
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Running ImAlive..."
+        "${s6wrap[@]}" echo "Running ImAlive..."
     fi
 
     ALIVE=true
@@ -42,7 +41,7 @@ do
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    STATUS=$(curl -s "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}")
+    STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}")"
     # STATUS now contains either "ok-12345678" or "ko-12345678"
     # where ok/ko means OK or not OK and 12345678 is the secs since epoch
     # STATUS can also contain the error page if the server returns an error
@@ -52,29 +51,28 @@ do
 
     # check the ImAlive server:
     if grep -o "404 Not Found" <<< "$STATUS" >/dev/null 2>&1; then
-         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
+         "${s6wrap[@]}" echo "ImAlive Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
     elif [[ -z  $STATUS ]]; then
-         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Network failure. Restarting ANFeeder \"just in case\"..."
+         "${s6wrap[@]}" echo "ImAlive Server cannot be reached: network failure. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no network failure"
     elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]; then
         # kx1t: using killall to restart the service instead of the RestartANfeeder.sh script
-         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Time stamp discrepancy: local $(date -d @"$timestamp") / remote $(date -d @"$remote_timestamp"); restarting ANfeeder"
+         "${s6wrap[@]}" echo "ImAlive Server: time stamp discrepancy: local $(date -d @"$timestamp") / remote $(date -d @"$remote_timestamp"); restarting ANfeeder"
         # kx1t: added warning that Docker image cannot resync NTP
-         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Warning - Feeder script would like to resync NTP, but this cannot done from within a Docker container."
-         s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Warning - Please make sure your host machine uses an accurate external time source!"
+         "${s6wrap[@]}" echo "Warning - Please make sure your host machine uses an accurate external time source!"
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="time discrepancy failure"
     elif [[ "$status" == "ko" ]]; then
         # kx1t: using s6 to restart the service
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Server says that no data is received: Restarting ANfeeder"
+        "${s6wrap[@]}" echo "ImAlive Server says that no data is received: Restarting ANfeeder"
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no data received by server failure"
         # /usr/bin/RestartANfeeder.sh;
     else
-        chk_enabled "${VERBOSE}" && s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Server connection is fine!" || true
+        chk_enabled "${VERBOSE}" && "${s6wrap[@]}" echo "ImAlive Server: connection is fine!" || true
     fi
 
     # check the SOURCE_HOST connection
@@ -82,11 +80,11 @@ do
     # if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v "${SOURCE_HOST%%:*}" "${SOURCE_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
     if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p src "${SOURCE_HOST%%:*}" and port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
     then
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "You data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
+        "${s6wrap[@]}" echo "Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
-        chk_enabled "${VERBOSE}"  && s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "$SOURCE_HOST can be reached! "
+        chk_enabled "${VERBOSE}"  && "${s6wrap[@]}" echo "$SOURCE_HOST can be reached! "
     fi
 
     # check if the RV_SERVER can be reached
@@ -99,12 +97,12 @@ do
     # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
     if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -u -z -v "${RV_SERVER%%:*}" "${RV_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
     then
-        s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
+        "${s6wrap[@]}" echo "The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="$RV_SERVER down failure"
     else
         if chk_enabled "${VERBOSE}"; then
-            s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "$RV_SERVER can be reached!"
+            "${s6wrap[@]}" echo "$RV_SERVER can be reached!"
         fi
     fi
 
