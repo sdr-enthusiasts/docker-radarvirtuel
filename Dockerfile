@@ -24,7 +24,7 @@ RUN set -x && \
     #
     # Install all these packages:
     apt-get update -q -y && \
-    apt-get install -q --force-yes -y \
+    apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
     ${KEPT_PACKAGES[@]} \
     ${TEMP_PACKAGES[@]} && \
     #
