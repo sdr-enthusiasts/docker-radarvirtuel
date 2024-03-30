@@ -1,12 +1,11 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash disable=SC1091,SC2015,SC2145
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145,SC2154
 
 source /scripts/common
 
-APPNAME="mlat-client"
-s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Started as an s6 service"
+"${s6wrap[@]}" echo "Started as an s6 service"
 
-MLAT_CMD="/usr/bin/mlat-client"
+MLAT_CMD="/usr/local/bin/mlat-client"
 MLAT_FLAG="/run/mlat-down"
 
 MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
@@ -23,7 +22,7 @@ then
 	if [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_SERVER%%:*}" "${MLAT_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]] \
   		|| [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_HOST%%:*}" "${MLAT_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
 	then
-		s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "MLAT host or server is still down. Trying again in 5 minutes"
+		"${s6wrap[@]}" echo "MLAT host or server is still down. Trying again in 5 minutes"
 		sleep 5m
 		exit 0
 	fi
@@ -46,8 +45,8 @@ MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
 sleep ${START_DELAY}
 
 if chk_enabled "${VERBOSE}"; then
-	s6wrap --quiet --prepend="${APPNAME}" --timestamps --args echo "Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}"
-	exec s6wrap --quiet --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"
+	"${s6wrap[@]}" echo "Starting MLAT with: ${MLAT_CMD} ${MLAT_PARAM[@]}"
+	exec "${s6wrap[@]}" "${MLAT_CMD}" "${MLAT_PARAM[@]}"
 else
-	exec s6wrap --quiet --ignore=stdout --prepend="${APPNAME}" --timestamps --args "${MLAT_CMD}" "${MLAT_PARAM[@]}"
+	exec "${s6wrap[@]}" "${MLAT_CMD}" "${MLAT_PARAM[@]}"
 fi
