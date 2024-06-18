@@ -5,22 +5,16 @@ FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
 ENV PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
 
-COPY --from=downloader /mlatclient.tgz /src/mlatclient.tgz
+ARG VERSION_REPO="sdr-enthusiasts/docker-radarvirtuel" \
+VERSION_BRANCH="##BRANCH##"
 
-# hadolint ignore=DL3008,SC2086,SC2039,SC2068,DL3003,DL3015,SC3054
-RUN set -x && \
+SHELL ["/bin/bash", "-x", "-o", "pipefail", "-c"]
+RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # define packages needed for installation and general management of the container:
     TEMP_PACKAGES=() && \
     KEPT_PACKAGES=() && \
-    KEPT_PACKAGES+=(procps aptitude) && \
+    KEPT_PACKAGES+=(procps) && \
     KEPT_PACKAGES+=(psmisc) && \
-    # Git and net-tools are needed to install and run @Mikenye's HealthCheck framework
-    # TEMP_PACKAGES+=(git) && \
-    # These are needed to compile and install the mlat_client:
-    # TEMP_PACKAGES+=(build-essential) && \
-    # TEMP_PACKAGES+=(debhelper) && \
-    # TEMP_PACKAGES+=(python3-dev) && \
-    # TEMP_PACKAGES+=(python3-distutils-extra) && \
     #
     # Install all these packages:
     apt-get update -q -y && \
@@ -28,18 +22,15 @@ RUN set -x && \
     ${KEPT_PACKAGES[@]} \
     ${TEMP_PACKAGES[@]} && \
     #
-    # Compile and Install the mlat_client
-    # mkdir -p /git && \
-    # pushd /git && \
-    # git clone --depth 1 $URL_MLAT_CLIENT_REPO && \
-    # cd mlat-client && \
-    # ./setup.py install && \
-    # ln -s /usr/local/bin/mlat-client /usr/bin/mlat-client && \
-    # popd && \
-    # rm -rf /git && \
-    #
-    # New - install mlatclient that was copied in from downloader image
-    tar zxf /src/mlatclient.tgz -C / && \
+    # Install mlatclient that was copied in from downloader image
+    tar zxf /downloader/mlatclient.tgz -C / && \
+    # test mlat-client
+    /usr/bin/mlat-client --help > /dev/null && \
+    # remove pycache introduced by testing mlat-client
+    find /usr | grep -E "/__pycache__$" | xargs rm -rf || true && \
+    # Add Container Version
+    [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true && \
+    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(curl -ssL https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH | awk '{if ($1=="\"sha\":") {print substr($2,2,7); exit}}')_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
     #
     # Clean up
     # apt-get remove -q -y ${TEMP_PACKAGES[@]} && \
