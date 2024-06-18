@@ -1,6 +1,6 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient as downloader
 
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:python
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
 ENV PRIVATE_MLAT="false" \
     MLAT_INPUT_TYPE="dump1090"
@@ -15,6 +15,9 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     KEPT_PACKAGES=() && \
     KEPT_PACKAGES+=(procps) && \
     KEPT_PACKAGES+=(psmisc) && \
+    # Needed to run the mlat_client:
+    KEPT_PACKAGES+=(python3-minimal) && \
+    KEPT_PACKAGES+=(python3-pkg-resources) && \
     #
     # Install all these packages:
     apt-get update -q -y && \
