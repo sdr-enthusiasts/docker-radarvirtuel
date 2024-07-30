@@ -15,6 +15,7 @@ Zone: $zone_id
 Name: $zone_name
 DNS:  $zone_dns
 Port: $zone_port
+------------------
 EOF
 fi
 
