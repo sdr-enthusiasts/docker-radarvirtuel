@@ -17,7 +17,9 @@ fi
 
 sleep ${START_DELAY}
 if chk_enabled "$VERBOSE"; then
+  "${s6wrap[@]}" echo "Starting /home/py/ANfeeder -v -i \"${FEEDER_KEY}\" -d \"${RV_SERVER}\" -s \"${SOURCE_HOST}\""
   exec "${s6wrap[@]}" /home/py/ANfeeder -v -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 else
+  "${s6wrap[@]}" echo "Starting /home/py/ANfeeder -i \"${FEEDER_KEY}\" -d \"${RV_SERVER}\" -s \"${SOURCE_HOST}\""
   exec "${s6wrap[@]}" /home/py/ANfeeder -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 fi
