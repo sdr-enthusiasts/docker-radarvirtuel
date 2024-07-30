@@ -2,9 +2,9 @@
 # shellcheck shell=bash disable=SC1091,SC2015,SC2145,SC2154
 
 source /scripts/common
+"${s6wrap[@]}" echo "Initializing RadarVirtuel..."
 
-[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
-
+RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 # check if we are in one of the defined zones, and update the server address accordingly:
 source /home/zonetable
 if [[ -n "$zone_id" ]]; then
@@ -23,16 +23,12 @@ if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
   "${s6wrap[@]}" cat <<EOF
 +------------------------------------------------------------------------+
 | ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
-| Please update the RV_SERVER parameter in docker-compose.yml            |
-| to: "mg22.adsbnetwork.com:${RV_SERVER##*:}".                           |
+| Please remove the RV_SERVER parameter in docker-compose.yml            |
 | We will use mg22.adsbnetwork.com for this session.                     |
 +------------------------------------------------------------------------+
 EOF
 fi
 
-[[ "$RV_SERVER" == "" ]] && RV_SERVER="mg2.adsbnetwork.com:50050"
-
-"${s6wrap[@]}" echo "Initializing RadarVirtuel..."
 if chk_enabled "${VERBOSE}"; then
   "${s6wrap[@]}" cat <<EOF
 Feeder key:          ${FEEDER_KEY}
