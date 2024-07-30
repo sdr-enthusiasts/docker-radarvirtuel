@@ -148,11 +148,6 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
             zone_id="$zone"
             zone_dns="${ZoneTable[$zone:dns]}"
             zone_port="${ZoneTable[$zone:port]}"
-            "${s6wrap[@]}" echo "Server and port have been updated automatically based on the LAT/LON of the receiver:"
-            "${s6wrap[@]}" echo "Zone: $zone_id"
-            "${s6wrap[@]}" echo "Name: $zone_name"
-            "${s6wrap[@]}" echo "DNS:  $zone_dns"
-            "${s6wrap[@]}" echo "Port: $zone_port"
             break
         fi
     done

@@ -4,6 +4,20 @@
 source /scripts/common
 
 [[ "$RV_SERVER" == "" ]] && RV_SERVER="mg22.adsbnetwork.com:50050" || true
+
+# check if we are in one of the defined zones, and update the server address accordingly:
+source /home/zonetable
+if [[ -n "$zone_id" ]]; then
+  RV_SERVER="${zone_dns}:${zone_port}"
+  "${s6wrap[@]}" cat <<EOF
+Server and port have been updated automatically based on the LAT/LON of the receiver:
+Zone: $zone_id
+Name: $zone_name
+DNS:  $zone_dns
+Port: $zone_port
+EOF
+fi
+
 if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
   RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"
   "${s6wrap[@]}" cat <<EOF
