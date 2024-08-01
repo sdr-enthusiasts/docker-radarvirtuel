@@ -1,28 +1,7 @@
 #shellcheck shell=bash disable=SC2154
 
-# index array with the zone names:
-declare -a ZoneNames=(
-    "NA001"
-    "NA002"
-    "NA003"
-    "NA004"
-    "NA005"
-    "NA006"
-    "NA007"
-    "NA008"
-    "NA009"
-    "NA010"
-    "NA011"
-    "NA012"
-    "NA013"
-    "NA014"
-    "NA015"
-    "NA016"
-    "NA017"
-)
-
 # associative array with the DNS, port, and boundary data for each zone.
-# Note - there MUST be equivalent entried for each of the ZoneNames in the ZoneTable
+
 declare -A ZoneTable=(
     [EU001:name]="West-Portugal West-Spain"
     [EU001:dns]="mg22.adsbnetwork.com"
@@ -256,6 +235,13 @@ declare -A ZoneTable=(
     [NA017:min_lat]="51.2097"
     [NA017:min_lon]="-172"
 )
+
+declare -a ZoneNames=()
+for name in "${!ZoneTable[@]}"; do
+    if [[ ! " ${ZoneNames[*]} " =~ " ${name:0:5} " ]]; then
+        ZoneNames+=("${name:0:5}")
+    fi
+done
 
 if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
     for zone in "${ZoneNames[@]}"; do
