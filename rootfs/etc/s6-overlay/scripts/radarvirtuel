@@ -9,9 +9,17 @@ RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
 "${s6wrap[@]}" echo "started as an s6 service"
 
+# check if we are in one of the defined zones, and update the server address accordingly:
+source /home/zonetable
+if [[ -n "$zone_id" ]]; then
+  RV_SERVER="${zone_dns}:${zone_port}"
+fi
+
 sleep ${START_DELAY}
 if chk_enabled "$VERBOSE"; then
+  "${s6wrap[@]}" echo "Starting /home/py/ANfeeder -v -i \"${FEEDER_KEY}\" -d \"${RV_SERVER}\" -s \"${SOURCE_HOST}\""
   exec "${s6wrap[@]}" /home/py/ANfeeder -v -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 else
+  "${s6wrap[@]}" echo "Starting /home/py/ANfeeder -i \"${FEEDER_KEY}\" -d \"${RV_SERVER}\" -s \"${SOURCE_HOST}\""
   exec "${s6wrap[@]}" /home/py/ANfeeder -i "${FEEDER_KEY}" -d "${RV_SERVER}" -s "${SOURCE_HOST}"
 fi

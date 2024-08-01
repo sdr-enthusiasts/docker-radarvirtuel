@@ -1,4 +1,4 @@
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient as downloader
+FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient AS downloader
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 

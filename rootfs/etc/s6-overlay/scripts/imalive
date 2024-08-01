@@ -14,6 +14,10 @@ touch /run/imalive/errors
 
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
+source /home/zonetable
+if [[ -n "$zone_id" ]]; then
+  RV_SERVER="${zone_dns}:${zone_port}"
+fi
 
 # Source in the scripts from @Mikenye's healthchecks-framework so we can use them here
 source /opt/healthchecks-framework/healthchecks.sh
@@ -41,8 +45,15 @@ do
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)" || true
+    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
+        if STATUS="$(curl -sSL http://mg22.adsbnetwork.com/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then
+            "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
+        else
+            STATUS=""
+        fi
+    fi
     # STATUS now contains either "ok-12345678" or "ko-12345678"
+    # If STATUS is empty then there was a connection error
     # where ok/ko means OK or not OK and 12345678 is the secs since epoch
     # STATUS can also contain the error page if the server returns an error
 
@@ -54,7 +65,7 @@ do
          "${s6wrap[@]}" echo "ImAlive Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
-    elif [[ -z  $STATUS ]]; then
+    elif [[ -z  "$STATUS" ]]; then
          "${s6wrap[@]}" echo "ImAlive Server cannot be reached: network failure. Restarting ANFeeder \"just in case\"..."
         killall /home/py/ANfeeder >/dev/null 2>&1
         ALIVE="no network failure"
