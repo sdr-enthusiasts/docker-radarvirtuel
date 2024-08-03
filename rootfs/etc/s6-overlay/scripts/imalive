@@ -3,6 +3,9 @@
 
 source /scripts/common
 
+while [[ -f /run/zonetable.lock ]]; do sleep 1; done
+source /home/zonetable
+
 KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
                       # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
@@ -13,8 +16,9 @@ touch /run/imalive/errors
 "${s6wrap[@]}" echo "Started as an s6 service"
 
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
+FALLBACK_IMALIVE_SERVICE="${FALLBACK_IMALIVE_SERVICE:-http://mg22.adsbnetwork.com/rtools/pyalive.php}"
 [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
-source /home/zonetable
+
 if [[ -n "$zone_id" ]]; then
   RV_SERVER="${zone_dns}:${zone_port}"
 fi
@@ -46,7 +50,7 @@ do
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
     if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
-        if STATUS="$(curl -sSL http://mg22.adsbnetwork.com/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then
+        if STATUS="$(curl -sSL "${FALLBACK_IMALIVE_SERVICE:-http://mg22.adsbnetwork.com/rtools/pyalive.php}"?stid="${st,,}" 2>&1)"; then
             "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
         else
             STATUS=""
