@@ -1,0 +1,23 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash disable=SC1091,SC2015,SC2145,SC2154
+
+source /scripts/common
+ZONETABLE_CHECK_INT="${ZONETABLE_CHECK_INT:-14400}"	# check every 4 hours
+
+"${s6wrap[@]}" echo "checking if zonetable needs to get updated"
+
+while [[ -f /run/zonetable.lock ]]; do sleep 1; done
+touch /run/zonetable.lock
+
+curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/zonetable/rootfs/home/zonetable -o /tmp/zonetable >/dev/null || true
+if [[ -z "$(comm -3 /home/zonetable /tmp/zonetable)" ]]; then
+	"${s6wrap[@]}" echo "Zonetable has changed, installing new version"
+        mv -f /tmp/zonetable /home/zonetable
+        chmod +x /home/zonetable
+else
+	"${s6wrap[@]}" echo "Zonetable has not changed sine last check."
+	rm -f /tmp/zonetable
+fi
+
+"${s6wrap[@]}" echo "Next zonetable update check will be at $(date "+$ZONETABLE_CHECK_INT seconds")"
+sleep $ZONETABLE_CHECK_INT
