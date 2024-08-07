@@ -260,3 +260,5 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
         fi
     done
 fi
+
+# test change
