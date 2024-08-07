@@ -1,5 +1,21 @@
 #shellcheck shell=bash disable=SC2154
 
+#---------------------------------------------------------------------------------------------
+# Copyright (C) 2023-2024, Ramon F. Kolb (kx1t) and contributors
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <https://www.gnu.org/licenses/>.
+#---------------------------------------------------------------------------------------------
+
 # Define where to get the ImAlive service if the RV_SERVER fails for any reason
 # If FALLBACK_IMALIVE_SERVICE is set to "off"/"disabled"/"no"/0 etc, then ImAlive will always be skipped (also for the primary ImAlive Check)
 # This is implemented to create control to switch off ImAlive if the ImAlive server fails for any reason
