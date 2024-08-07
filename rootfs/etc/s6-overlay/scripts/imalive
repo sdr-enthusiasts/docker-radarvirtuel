@@ -104,12 +104,12 @@ do
 
     # check if we see UDP data on the RV_SERVER port in 3 seconds, if that fails, try again for 30 secs
     # this is so the check will pass in 3 secs during times of high traffic, but we'll check for a longer period of time during low traffic
-    if   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] \
-      || [[ "$(grep captured <<< "$(timeout --preserve-status 30 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]; then
-      "${s6wrap[@]}" echo "The container is not sending any data to the RadarVirtuel server at $RV_SERVER . Restarting ANfeeder"
-      ALIVE="$RV_SERVER down failure"
+    if   (( $(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}') > 0 )) \
+      || (( $(grep captured <<< "$(timeout --preserve-status 30 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" > 0 )); then
+          if chk_enabled "${VERBOSE}"; then "${s6wrap[@]}" echo "The container is sending data to $RV_SERVER"; fi
     else
-        if chk_enabled "${VERBOSE}"; then "${s6wrap[@]}" echo "The container is sending data to $RV_SERVER"; fi
+          "${s6wrap[@]}" echo "The container is not sending any data to the RadarVirtuel server at $RV_SERVER . Restarting ANfeeder"
+          ALIVE="$RV_SERVER down failure"
     fi
 
     if [[ "$ALIVE" != "true" ]]; then
