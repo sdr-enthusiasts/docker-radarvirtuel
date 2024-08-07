@@ -4,12 +4,14 @@
 source /scripts/common
 
 while [[ -f /run/zonetable.lock ]]; do sleep 1; done
+touch /run/zonetable.lock
 source /home/zonetable
+rm -f /run/zonetable.lock
 
-KEEPALIVE_ALIVE=600   # keepalive timer in seconds if previous run was fine
-KEEPALIVE_DEAD=60     # keepalive timer in seconds if previous run failed
-                      # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
-CONNECTION_TIMEOUT=10 # timeout when checking ability to connect using netcat
+KEEPALIVE_ALIVE="${KEEPALIVE_ALIVE:-600}"     # keepalive timer in seconds if previous run was fine
+KEEPALIVE_DEAD="${KEEPALIVE_DEAD:-60}"        # keepalive timer in seconds if previous run failed
+                                              # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
+CONNECTION_TIMEOUT="{CONNECTION_TIMEOUT:-10}" # timeout when checking ability to connect using netcat
 ALIVE=true
 mkdir -p /run/imalive
 touch /run/imalive/errors
@@ -49,8 +51,14 @@ do
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
-        if STATUS="$(curl -sSL "${FALLBACK_IMALIVE_SERVICE:-http://mg22.adsbnetwork.com/rtools/pyalive.php}"?stid="${st,,}" 2>&1)"; then
+    #
+    # 07-AUG-2024 -- added the following code because at the moment, MG21 is providing a "ko" unduely due to server side MongoDB issues
+    #                once fixed, we can revert to the original line
+    # ORIGINAL:
+    # if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
+    # NEW: (revert this 1 line once MG21 is fixed)
+    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)" || [[ "${STATUS%%-*}" == "ko" ]]; then 
+        if STATUS="$(curl -sSL "${FALLBACK_IMALIVE_SERVICE}"?stid="${st,,}" 2>&1)"; then
             "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
         else
             STATUS=""
