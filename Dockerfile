@@ -18,6 +18,8 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # Needed to run the mlat_client:
     KEPT_PACKAGES+=(python3-minimal) && \
     KEPT_PACKAGES+=(python3-pkg-resources) && \
+    # Needed for the new ImAlive:
+    KEPT_PACKAGES+=(tcpdump) && \
     #
     # Install all these packages:
     apt-get update -q -y && \
