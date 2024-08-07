@@ -45,7 +45,13 @@ do
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
     #echo " $st Current Time : $ts"
-    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
+    #
+    # 07-AUG-2024 -- added the following code because at the moment, MG21 is providing a "ko" unduely due to server side MongoDB issues
+    #                once fixed, we can revert to the original line
+    # ORIGINAL:
+    # if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
+    # NEW: (revert this 1 line once MG21 is fixed)
+    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)" || [[ "${STATUS%%-*}" == "ko" ]]; then 
         if STATUS="$(curl -sSL http://mg22.adsbnetwork.com/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then
             "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
         else
