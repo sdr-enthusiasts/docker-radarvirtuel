@@ -19,8 +19,8 @@ if curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtu
 		rm -f /tmp/zonetable
 	fi
 else
-	"${s6wrap[@]}" echo "[WARNING] Couldn't reach the remote server with the latest zonetable - we will keep on using the current table"
+	"${s6wrap[@]}" echo "[WARNING] couldn't reach the remote server with the latest zonetable - we will keep on using the current table"
 fi
 
-"${s6wrap[@]}" echo "[INFO] Next zonetable update check will be at $(date -d "+$ZONETABLE_CHECK_INT seconds" | xargs)"
+"${s6wrap[@]}" echo "[INFO] next zonetable update check will be at $(date -d "+$ZONETABLE_CHECK_INT seconds" | xargs)"
 sleep $ZONETABLE_CHECK_INT
