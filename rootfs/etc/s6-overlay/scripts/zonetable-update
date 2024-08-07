@@ -6,14 +6,14 @@ ZONETABLE_CHECK_INT="${ZONETABLE_CHECK_INT:-14400}"	# check every 4 hours
 
 "${s6wrap[@]}" echo "checking if zonetable needs to get updated"
 
-while [[ -f /run/zonetable.lock ]]; do sleep 1; done
-touch /run/zonetable.lock
-
-curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/zonetable/rootfs/home/zonetable -o /tmp/zonetable >/dev/null || true
-if [[ -z "$(comm -3 /home/zonetable /tmp/zonetable)" ]]; then
+if curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/zonetable/rootfs/home/zonetable -o /tmp/zonetable >/dev/null 2>&1 && \
+   [[ -n "$(comm -3 /home/zonetable /tmp/zonetable)" ]]; then
 	"${s6wrap[@]}" echo "Zonetable has changed, installing new version"
+	while [[ -f /run/zonetable.lock ]]; do sleep 1; done
+	touch /run/zonetable.lock
         mv -f /tmp/zonetable /home/zonetable
         chmod +x /home/zonetable
+	rm -f /run/zonetable.lock
 else
 	"${s6wrap[@]}" echo "Zonetable has not changed sine last check."
 	rm -f /tmp/zonetable
