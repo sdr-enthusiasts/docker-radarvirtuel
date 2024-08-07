@@ -87,30 +87,29 @@ do
       elif [[ "$status" == "ok" ]]; then
         chk_enabled "${VERBOSE}" && "${s6wrap[@]}" echo "ImAlive Server: connection is fine!"
       else
-        "${s6wrap[@]}" echo "ImAlife error: $STATUS. Restarting ANfeeder"
+        "${s6wrap[@]}" echo "ImAlive error: $STATUS. Restarting ANfeeder"
         ALIVE="$STATUS"
       fi
+    else
+      "${s6wrap[@]}" echo "Server Check-in is disabled - skipped querying ${RV_SERVER%%:*}"
     fi
 
     # check the SOURCE_HOST connection
     if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p src "${SOURCE_HOST%%:*}" and port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]; then
-        "${s6wrap[@]}" echo "Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
+        "${s6wrap[@]}" echo "Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder"
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
-        chk_enabled "${VERBOSE}"  && "${s6wrap[@]}" echo "$SOURCE_HOST can be reached! "
+        if chk_enabled "${VERBOSE}"; then "${s6wrap[@]}" echo "$SOURCE_HOST is sending data to the container"; fi
     fi
 
     # check if we see UDP data on the RV_SERVER port in 3 seconds, if that fails, try again for 30 secs
     # this is so the check will pass in 3 secs during times of high traffic, but we'll check for a longer period of time during low traffic
     if   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] \
-      || [[ "$(grep captured <<< "$(timeout --preserve-status 30 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] \
-      then
-        "${s6wrap[@]}" echo "The container is not sending any data to the RadarVirtuel server at $RV_SERVER . Restarting ANfeeder."
-        ALIVE="$RV_SERVER down failure"
-      else
-        if chk_enabled "${VERBOSE}"; then
-          "${s6wrap[@]}" echo "$RV_SERVER can be reached!"
-        fi
+      || [[ "$(grep captured <<< "$(timeout --preserve-status 30 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]; then
+      "${s6wrap[@]}" echo "The container is not sending any data to the RadarVirtuel server at $RV_SERVER . Restarting ANfeeder"
+      ALIVE="$RV_SERVER down failure"
+    else
+        if chk_enabled "${VERBOSE}"; then "${s6wrap[@]}" echo "The container is sending data to $RV_SERVER"; fi
     fi
 
     if [[ "$ALIVE" != "true" ]]; then
