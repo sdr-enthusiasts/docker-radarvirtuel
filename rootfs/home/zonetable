@@ -263,4 +263,6 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
             break
         fi
     done
+else
+    unset zone_name zone_id zone_dns zone_port
 fi
