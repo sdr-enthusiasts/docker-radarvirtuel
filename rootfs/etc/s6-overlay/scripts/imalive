@@ -50,64 +50,61 @@ do
     # kx1t: retrieve station name from $FEEDER_KEY docker env variable
     st=${FEEDER_KEY%%:*}
     timestamp=$(date "+%s")
-    #echo " $st Current Time : $ts"
-    #
-    # 07-AUG-2024 -- added the following code because at the moment, MG21 is providing a "ko" unduely due to server side MongoDB issues
-    #                once fixed, we can revert to the original line
-    # ORIGINAL:
-    # if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
-    # NEW: (revert this 1 line once MG21 is fixed)
-    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)" || [[ "${STATUS%%-*}" == "ko" ]]; then 
-        if STATUS="$(curl -sSL "${FALLBACK_IMALIVE_SERVICE}"?stid="${st,,}" 2>&1)"; then
-            "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
-        else
-            STATUS=""
-        fi
-    fi
-    # STATUS now contains either "ok-12345678" or "ko-12345678"
-    # If STATUS is empty then there was a connection error
-    # where ok/ko means OK or not OK and 12345678 is the secs since epoch
-    # STATUS can also contain the error page if the server returns an error
-
-    status="${STATUS%%-*}"
-    remote_timestamp="${STATUS##*-}"
-
-    # check the ImAlive server:
-    if grep -o "404 Not Found" <<< "$STATUS" >/dev/null 2>&1; then
-         "${s6wrap[@]}" echo "ImAlive Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
-        killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
-    elif [[ -z  "$STATUS" ]]; then
-         "${s6wrap[@]}" echo "ImAlive Server cannot be reached: network failure. Restarting ANFeeder \"just in case\"..."
-        killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="no network failure"
-    elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]; then
-        # kx1t: using killall to restart the service instead of the RestartANfeeder.sh script
-         "${s6wrap[@]}" echo "ImAlive Server: time stamp discrepancy: local $(date -d @"$timestamp") / remote $(date -d @"$remote_timestamp"); restarting ANfeeder"
-        # kx1t: added warning that Docker image cannot resync NTP
-         "${s6wrap[@]}" echo "Warning - Please make sure your host machine uses an accurate external time source!"
-        killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="time discrepancy failure"
-    elif [[ "$status" == "ko" ]]; then
-        # kx1t: using s6 to restart the service
-        "${s6wrap[@]}" echo "ImAlive Server says that no data is received: Restarting ANfeeder"
-        killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="no data received by server failure"
-    elif [[ "$status" == "ok" ]]; then
-        chk_enabled "${VERBOSE}" && "${s6wrap[@]}" echo "ImAlive Server: connection is fine!"
-    else
-        "${s6wrap[@]}" echo "ImAlife error: $STATUS. Restarting ANfeeder"
-        killall /home/py/ANfeeder >/dev/null 2>&1
-        ALIVE="$STATUS"
-    fi
+#    #echo " $st Current Time : $ts"
+#    #
+#    # 07-AUG-2024 -- added the following code because at the moment, MG21 is providing a "ko" unduely due to server side MongoDB issues
+#    #                once fixed, we can revert to the original line
+#    # ORIGINAL:
+#    # if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)"; then 
+#    # NEW: (revert this 1 line once MG21 is fixed)
+#    if ! STATUS="$(curl -sSL "${RV_SERVER%%:*}"/rtools/pyalive.php?stid="${st,,}" 2>&1)" || [[ "${STATUS%%-*}" == "ko" ]]; then 
+#        if STATUS="$(curl -sSL "${FALLBACK_IMALIVE_SERVICE}"?stid="${st,,}" 2>&1)"; then
+#            "${s6wrap[@]}" echo "ImAlive status on ${RV_SERVER%%:*} wasn't available, fell back to mg22.adsbnetwork.com"
+#        else
+#            STATUS=""
+#        fi
+#    fi
+#    # STATUS now contains either "ok-12345678" or "ko-12345678"
+#    # If STATUS is empty then there was a connection error
+#    # where ok/ko means OK or not OK and 12345678 is the secs since epoch
+#    # STATUS can also contain the error page if the server returns an error
+#
+#    status="${STATUS%%-*}"
+#    remote_timestamp="${STATUS##*-}"
+#
+#    # check the ImAlive server:
+#    if grep -o "404 Not Found" <<< "$STATUS" >/dev/null 2>&1; then
+#         "${s6wrap[@]}" echo "ImAlive Server returned 404-Not Found. Restarting ANFeeder \"just in case\"..."
+#        killall /home/py/ANfeeder >/dev/null 2>&1
+#        ALIVE="404 failure for ${RV_SERVER%%:*}/rtools/pyalive.php?stid=$st"
+#    elif [[ -z  "$STATUS" ]]; then
+#         "${s6wrap[@]}" echo "ImAlive Server cannot be reached: network failure. Restarting ANFeeder \"just in case\"..."
+#        killall /home/py/ANfeeder >/dev/null 2>&1
+#        ALIVE="no network failure"
+#    elif [[ $timestamp -lt $(( remote_timestamp - 10 )) ]]; then
+#        # kx1t: using killall to restart the service instead of the RestartANfeeder.sh script
+#         "${s6wrap[@]}" echo "ImAlive Server: time stamp discrepancy: local $(date -d @"$timestamp") / remote $(date -d @"$remote_timestamp"); restarting ANfeeder"
+#        # kx1t: added warning that Docker image cannot resync NTP
+#         "${s6wrap[@]}" echo "Warning - Please make sure your host machine uses an accurate external time source!"
+#        killall /home/py/ANfeeder >/dev/null 2>&1
+#        ALIVE="time discrepancy failure"
+#    elif [[ "$status" == "ko" ]]; then
+#        # kx1t: using s6 to restart the service
+#        "${s6wrap[@]}" echo "ImAlive Server says that no data is received: Restarting ANfeeder"
+#        killall /home/py/ANfeeder >/dev/null 2>&1
+#        ALIVE="no data received by server failure"
+#    elif [[ "$status" == "ok" ]]; then
+#        chk_enabled "${VERBOSE}" && "${s6wrap[@]}" echo "ImAlive Server: connection is fine!"
+#    else
+#        "${s6wrap[@]}" echo "ImAlife error: $STATUS. Restarting ANfeeder"
+#        killall /home/py/ANfeeder >/dev/null 2>&1
+#        ALIVE="$STATUS"
+#    fi
 
     # check the SOURCE_HOST connection
-    # if ! check_tcp4_connection_established ANY ANY $(get_ipv4 ${SOURCE_HOST%%:*}) ${SOURCE_HOST##*:} >/dev/null 2>&1
-    # if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -z -v "${SOURCE_HOST%%:*}" "${SOURCE_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
-    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p src "${SOURCE_HOST%%:*}" and port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]
-    then
+    if [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p src "${SOURCE_HOST%%:*}" and port "${SOURCE_HOST##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]]; then
         "${s6wrap[@]}" echo "Your data source at $SOURCE_HOST appears to be down. Restarting ANfeeder."
-        killall /home/py/ANfeeder >/dev/null 2>&1
+        killall /home/py/ANfeeder >/dev/null 2>&1 || true
         ALIVE="cannot establish connection to SOURCE HOST $SOURCE_HOST"
     else
         chk_enabled "${VERBOSE}"  && "${s6wrap[@]}" echo "$SOURCE_HOST can be reached! "
@@ -120,15 +117,18 @@ do
     #
     # In reality, false passes of this check aren't too important as we already pinged the ImAlive server to see that they think the connection is OK
     #
-    # if ! check_udp4_connection_established ANY ANY $(get_ipv4 ${RV_SERVER%%:*}) ${RV_SERVER##*:} >/dev/null 2>&1
-    if [[ $(timeout --preserve-status $CONNECTION_TIMEOUT netcat -u -z -v "${RV_SERVER%%:*}" "${RV_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
-    then
-        "${s6wrap[@]}" echo "The RadarVirtuel server at $RV_SERVER appears to be down. Restarting ANfeeder."
-        killall /home/py/ANfeeder >/dev/null 2>&1
+
+    # check if we see UDP data on the RV_SERVER port in 3 seconds, if that fails, try again for 30 secs
+    # this is so the check will pass in 3 secs during times of high traffic, but we'll check for a longer period of time during low traffic
+    if   [[ "$(grep captured <<< "$(timeout --preserve-status 3 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] \
+      || [[ "$(grep captured <<< "$(timeout --preserve-status 30 tcpdump -p udp port "${RV_SERVER##*:}" 2>/dev/stdout 1>/dev/null)" | awk '{print $1}')" == "0" ]] \
+      then
+        "${s6wrap[@]}" echo "The container is not sending any data to the RadarVirtuel server at $RV_SERVER . Restarting ANfeeder."
+        killall /home/py/ANfeeder >/dev/null 2>&1 || true
         ALIVE="$RV_SERVER down failure"
-    else
+      else
         if chk_enabled "${VERBOSE}"; then
-            "${s6wrap[@]}" echo "$RV_SERVER can be reached!"
+          "${s6wrap[@]}" echo "$RV_SERVER can be reached!"
         fi
     fi
 
