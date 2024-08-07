@@ -4,8 +4,8 @@
 # If FALLBACK_IMALIVE_SERVICE is set to "off"/"disabled"/"no"/0 etc, then ImAlive will always be skipped (also for the primary ImAlive Check)
 # This is implemented to create control to switch off ImAlive if the ImAlive server fails for any reason
 
-# FALLBACK_IMALIVE_SERVICE="http://mg22.adsbnetwork.com/rtools/pyalive.php"
-FALLBACK_IMALIVE_SERVICE="disabled"
+FALLBACK_IMALIVE_SERVICE="http://mg22.adsbnetwork.com/rtools/pyalive.php"
+# FALLBACK_IMALIVE_SERVICE="disabled"
 
 # associative array with the name, DNS, port, and boundary data for each zone.
 declare -A ZoneTable=(
@@ -264,5 +264,3 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
         fi
     done
 fi
-
-# test change #3
