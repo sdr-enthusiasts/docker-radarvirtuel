@@ -15,7 +15,7 @@ if curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtu
 	        chmod +x /home/zonetable
 		rm -f /run/zonetable.lock
 	else
-		"${s6wrap[@]}" echo "[INFO] zonetable has not changed sine last check."
+		"${s6wrap[@]}" echo "[INFO] zonetable has not changed since last check"
 		rm -f /tmp/zonetable
 	fi
 else
