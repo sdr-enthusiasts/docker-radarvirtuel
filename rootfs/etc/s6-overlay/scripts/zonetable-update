@@ -2,11 +2,12 @@
 # shellcheck shell=bash disable=SC1091,SC2015,SC2145,SC2154
 
 source /scripts/common
-ZONETABLE_CHECK_INT="${ZONETABLE_CHECK_INT:-14400}"	# check every 4 hours
+ZONETABLE_CHECK_INT="${ZONETABLE_CHECK_INT:-7200}"	# check every 2 hours
+ZONETABLE_URL="${ZONETABLE_URL:-https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/main/rootfs/home/zonetable}"
 
 "${s6wrap[@]}" echo "[INFO] checking if zonetable needs to get updated"
 
-if curl -sSL https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/zonetable/rootfs/home/zonetable -o /tmp/zonetable >/dev/null 2>&1; then 
+if curl -sSL "${ZONETABLE_URL}" -o /tmp/zonetable >/dev/null 2>&1; then 
 	if [[ -n "$(comm --nocheck-order -3 /home/zonetable /tmp/zonetable 2>/dev/null)" ]]; then
 		"${s6wrap[@]}" echo "[INFO] zonetable has changed, installing new version"
 		while [[ -f /run/zonetable.lock ]]; do sleep 1; done
