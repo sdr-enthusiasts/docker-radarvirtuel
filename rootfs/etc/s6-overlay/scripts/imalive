@@ -46,6 +46,15 @@ do
         "${s6wrap[@]}" echo "Running ImAlive..."
     fi
 
+    # Get the latest zonetable values:
+    while [[ -f /run/zonetable.lock ]]; do sleep 1; done
+    touch /run/zonetable.lock
+    source /home/zonetable
+    rm -f /run/zonetable.lock
+    if [[ -n "$zone_id" ]]; then
+      RV_SERVER="${zone_dns}:${zone_port}"
+    fi
+
     ALIVE=true
     # kx1t: retrieve station name from $FEEDER_KEY docker env variable
     st=${FEEDER_KEY%%:*}
