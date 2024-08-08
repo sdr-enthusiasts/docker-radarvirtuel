@@ -32,6 +32,7 @@ source /opt/healthchecks-framework/healthchecks.sh
 
 MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
 MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
+MLAT_HOST="${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}"
 
 # Check: see if the parameters are correctly configured
 if [[ -z "${MLAT_HOST}" ]]

@@ -27,11 +27,16 @@ if [[ -n "$zone_id" ]]; then
   RV_SERVER="${zone_dns}:${zone_port}"
   "${s6wrap[@]}" cat <<EOF
 Server and port have been updated automatically based on the LAT/LON of the receiver:
-Zone: $zone_id
-Name: $zone_name
-DNS:  $zone_dns
-Port: $zone_port
+Zone ID    : $zone_id
+Zone Name  : $zone_name
+ADSB Server: $zone_dns:$zone_port
+MLAT Server: $zone_mlat
 ------------------
+EOF
+else
+  "${s6wrap[@]}" cat <<EOF
+ADSB Server: $RV_SERVER
+MLAT Server: ${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}
 EOF
 fi
 
@@ -40,7 +45,7 @@ if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
   "${s6wrap[@]}" cat <<EOF
 +------------------------------------------------------------------------+
 | ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
-| Please remove the RV_SERVER parameter in docker-compose.yml            |
+| Please remove the RV_SERVER parameter from  docker-compose.yml         |
 | We will use mg22.adsbnetwork.com for this session.                     |
 +------------------------------------------------------------------------+
 EOF
@@ -48,10 +53,10 @@ fi
 
 if chk_enabled "${VERBOSE}"; then
   "${s6wrap[@]}" cat <<EOF
-Feeder key:          ${FEEDER_KEY}
-Source host:         ${SOURCE_HOST}
-RadarVirtuel Server: ${RV_SERVER}
-Verbose:             ${VERBOSE}
+Feeder Key : ${FEEDER_KEY}
+ADSB Source: ${SOURCE_HOST}
+MLAT Source: ${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}
+Verbose    : ${VERBOSE}
 EOF
 fi
 
@@ -63,7 +68,7 @@ else
   ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
 fi
 if chk_enabled "${VERBOSE}"; then
-  "${s6wrap[@]}" echo "Architecture:        $(dpkg --print-architecture) (supported)"
+  "${s6wrap[@]}" echo "Sys Arch   : $(dpkg --print-architecture) (supported)"
 fi
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
