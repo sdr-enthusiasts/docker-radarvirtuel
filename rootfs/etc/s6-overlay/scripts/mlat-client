@@ -31,7 +31,7 @@ START_DELAY=10s
 
 # Do some basic checks:
 # Sleep forever if the initialization process found that MLAT cannot be started
-[[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]] && sleep infinity || true
+if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]]; then  stop_service; fi
 # Sleep for 5 minutes if the issue is that the config is correct but the server is down
 if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
 then
@@ -46,6 +46,9 @@ else
 	rm -f "${MLAT_FLAG}"
 fi
 
+# update the MLAT_SERVER from the ZoneTable script:
+source /home/zonetable
+
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
 # MLAT_PARAM+=(--no-udp)
 MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
@@ -56,7 +59,7 @@ MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
 MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
-[[ -n "${PRIVATE_MLAT}" ]] && MLAT_PARAM+=(--privacy) || true
+MLAT_PARAM+=("${PRIVATE_MLAT:+--privacy}")
 
 sleep ${START_DELAY}
 

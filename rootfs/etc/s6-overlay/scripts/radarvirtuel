@@ -22,8 +22,8 @@ source /scripts/common
 START_DELAY=5s
 
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
-[[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]] && RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}" || true
-"${s6wrap[@]}" echo "started as an s6 service"
+if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"; fi
+"${s6wrap[@]}" echo "Started as an s6 service"
 
 # check if we are in one of the defined zones, and update the server address accordingly:
 source /home/zonetable
