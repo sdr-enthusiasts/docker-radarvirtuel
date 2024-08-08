@@ -27,7 +27,8 @@ rm -f /run/zonetable.lock
 KEEPALIVE_ALIVE="${KEEPALIVE_ALIVE:-600}"     # keepalive timer in seconds if previous run was fine
 KEEPALIVE_DEAD="${KEEPALIVE_DEAD:-60}"        # keepalive timer in seconds if previous run failed
                                               # dont make this shorter than 60 secs to allow services to be properly restarted after a failure
-CONNECTION_TIMEOUT="{CONNECTION_TIMEOUT:-10}" # timeout when checking ability to connect using netcat
+
+#CONNECTION_TIMEOUT="${CONNECTION_TIMEOUT:-10}" # timeout when checking ability to connect using netcat
 ALIVE=true
 mkdir -p /run/imalive
 touch /run/imalive/errors
@@ -138,7 +139,8 @@ do
     fi
 
     if [[ "$ALIVE" != "true" ]]; then
-      killall /home/py/ANfeeder >/dev/null 2>&1 || true
+		  pkill -f /home/py/ANfeeder >/dev/null 2>&1 || true
+		  pkill -f /usr/local/bin/mlat-client >/dev/null 2>&1 || true
       echo "$(date +%s) - $ALIVE" >> /run/imalive/errors
     else
       echo "" > /run/imalive/errors

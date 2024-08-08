@@ -21,23 +21,25 @@ source /scripts/common
 ZONETABLE_CHECK_INT="${ZONETABLE_CHECK_INT:-7200}"	# check every 2 hours
 ZONETABLE_URL="${ZONETABLE_URL:-https://raw.githubusercontent.com/sdr-enthusiasts/docker-radarvirtuel/main/rootfs/home/zonetable}"
 
-"${s6wrap[@]}" echo "[INFO] checking if zonetable needs to get updated"
+"${s6wrap[@]}" echo "[INFO] Checking if zonetable needs to get updated"
 
-if curl -sSL "${ZONETABLE_URL}" -o /tmp/zonetable >/dev/null 2>&1; then 
+if curl -sSL --fail "${ZONETABLE_URL}" -o /tmp/zonetable >/dev/null 2>&1; then 
 	if [[ -n "$(comm --nocheck-order -3 /home/zonetable /tmp/zonetable 2>/dev/null)" ]]; then
-		"${s6wrap[@]}" echo "[INFO] zonetable has changed, installing new version"
+		"${s6wrap[@]}" echo "[INFO] Zonetable has changed, installing new version and restarting ANFeeder and mlat-client"
 		while [[ -f /run/zonetable.lock ]]; do sleep 1; done
 		touch /run/zonetable.lock
-	        mv -f /tmp/zonetable /home/zonetable
-	        chmod +x /home/zonetable
+	    mv -f /tmp/zonetable /home/zonetable
+		chmod +x /home/zonetable
 		rm -f /run/zonetable.lock
+		pkill -f /home/py/ANfeeder >/dev/null 2>&1 || true
+		pkill -f /usr/local/bin/mlat-client >/dev/null 2>&1 || true
 	else
-		"${s6wrap[@]}" echo "[INFO] zonetable has not changed since last check"
+		"${s6wrap[@]}" echo "[INFO] Zonetable has not changed since last check"
 		rm -f /tmp/zonetable
 	fi
 else
-	"${s6wrap[@]}" echo "[WARNING] couldn't reach the remote server with the latest zonetable - we will keep on using the current table"
+	"${s6wrap[@]}" echo "[WARNING] Couldn't reach the remote server with the latest zonetable - we will keep on using the current table"
 fi
 
-"${s6wrap[@]}" echo "[INFO] next zonetable update check will be at $(date -d "+$ZONETABLE_CHECK_INT seconds" | xargs)"
-sleep $ZONETABLE_CHECK_INT
+"${s6wrap[@]}" echo "[INFO] Next zonetable update check will be at $(date -d "+$ZONETABLE_CHECK_INT seconds" | xargs)"
+exec sleep "$ZONETABLE_CHECK_INT"
