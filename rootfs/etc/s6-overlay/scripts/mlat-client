@@ -27,7 +27,14 @@ MLAT_FLAG="/run/mlat-down"
 MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
 MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
 
+# If MLAT_HOST is not defined, use port 30005 (beast_out) on the SOURCE_HOST
+MLAT_HOST="${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}"
+
 START_DELAY=10s
+
+# update the MLAT_SERVER from the ZoneTable script:
+source /home/zonetable
+MLAT_SERVER="${zone_mlat:-${MLAT_SERVER}}"
 
 # Do some basic checks:
 # Sleep forever if the initialization process found that MLAT cannot be started
@@ -46,11 +53,7 @@ else
 	rm -f "${MLAT_FLAG}"
 fi
 
-# update the MLAT_SERVER from the ZoneTable script:
-source /home/zonetable
-
 MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
-# MLAT_PARAM+=(--no-udp)
 MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
 MLAT_PARAM+=(--server "${MLAT_SERVER}")
 MLAT_PARAM+=(--lat "${LAT}")

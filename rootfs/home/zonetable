@@ -309,10 +309,11 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
             zone_id="$zone"
             zone_dns="${ZoneTable[$zone:dns]}"
             zone_port="${ZoneTable[$zone:port]}"
+            zone_mlat="${ZoneTable[$zone:mlat]}"
+            unset ZoneTable ZoneNames
             break
         fi
-        if [[ -n "${ZoneTable[$zone:mlat]}" ]]; then MLAT_SERVER="${ZoneTable[$zone:mlat]}"; fi
     done
 else
-    unset zone_name zone_id zone_dns zone_port
+    unset zone_name zone_id zone_dns zone_port ZoneTable ZoneNames
 fi
