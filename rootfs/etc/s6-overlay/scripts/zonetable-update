@@ -31,8 +31,8 @@ if curl -sSL --fail "${ZONETABLE_URL}" -o /tmp/zonetable >/dev/null 2>&1; then
 	    mv -f /tmp/zonetable /home/zonetable
 		chmod +x /home/zonetable
 		rm -f /run/zonetable.lock
-		killall /home/py/ANfeeder >/dev/null 2>&1 || true
-		killall /usr/local/bin/mlat-client >/dev/null 2>&1 || true
+		pkill -f /home/py/ANfeeder >/dev/null 2>&1 || true
+		pkill -f /usr/local/bin/mlat-client >/dev/null 2>&1 || true
 	else
 		"${s6wrap[@]}" echo "[INFO] Zonetable has not changed since last check"
 		rm -f /tmp/zonetable
