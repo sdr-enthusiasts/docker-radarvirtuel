@@ -35,8 +35,7 @@ MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
 MLAT_HOST="${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}"
 
 # Check: see if the parameters are correctly configured
-if [[ -z "${MLAT_HOST}" ]]
-then
+if [[ -z "${LAT}" ]] || [[ -z "${LON}" ]] || [[ -z "${ALT}" ]]; then
     "${s6wrap[@]}" cat <<EOF
 -------------------------------------------------------------------
 ATTENTION RADARVIRTUEL USERS!
@@ -46,8 +45,6 @@ This is a NEW FEATURE and we encourage you to use it!
 Here's how: add the following parameter to the environment section of
 radarvirtuel:
 
-    - MLAT_SERVER=mlat.adsbnetwork.com:50000    # Don't change this unless someone tells you to
-    - MLAT_HOST=\${HOSTNAME}:30005              # This is the same hostname as for SOURCE_HOST, but now using port 30005
     - LAT=42.123456789                          # This is your station latitude
     - LON=-71.123456789                         # This is your station longtude
     - ALT=40ft                                  # This is your antenna altitude above the ellipoid (MSL) - use "ft" for feet or "m" for meters
@@ -86,6 +83,11 @@ then
   echo "temp" > "$MLAT_FLAG"
   exit 0
 fi
+
+# update the MLAT_SERVER from the ZoneTable script:
+source /home/zonetable
+MLAT_SERVER="${zone_mlat:-${MLAT_SERVER}}"
+MLAT_SERVER="${MLAT_SERVER:-mlat.adsbnetwork.com:50000}"
 
 # Check: see if remote MLAT server can be reached
 MLAT_OK=""

@@ -35,10 +35,11 @@ START_DELAY=10s
 # update the MLAT_SERVER from the ZoneTable script:
 source /home/zonetable
 MLAT_SERVER="${zone_mlat:-${MLAT_SERVER}}"
+MLAT_SERVER="${MLAT_SERVER:-mlat.adsbnetwork.com:50000}"
 
 # Do some basic checks:
 # Sleep forever if the initialization process found that MLAT cannot be started
-if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]]; then  stop_service; fi
+if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]]; then stop_service; fi
 # Sleep for 5 minutes if the issue is that the config is correct but the server is down
 if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
 then

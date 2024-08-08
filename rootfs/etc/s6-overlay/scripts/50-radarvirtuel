@@ -20,6 +20,16 @@
 source /scripts/common
 "${s6wrap[@]}" echo "Initializing RadarVirtuel..."
 
+if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
+  RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"
+  "${s6wrap[@]}" cat <<EOF
++------------------------------------------------------------------------+
+| ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
+| Please remove the RV_SERVER parameter from  docker-compose.yml         |
+| We will use mg22.adsbnetwork.com for this session.                     |
++------------------------------------------------------------------------+
+EOF
+fi
 RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
 # check if we are in one of the defined zones, and update the server address accordingly:
 source /home/zonetable
@@ -37,17 +47,6 @@ else
   "${s6wrap[@]}" cat <<EOF
 ADSB Server: $RV_SERVER
 MLAT Server: ${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}
-EOF
-fi
-
-if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
-  RV_SERVER="mg22.adsbnetwork.com:${RV_SERVER##*:}"
-  "${s6wrap[@]}" cat <<EOF
-+------------------------------------------------------------------------+
-| ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
-| Please remove the RV_SERVER parameter from  docker-compose.yml         |
-| We will use mg22.adsbnetwork.com for this session.                     |
-+------------------------------------------------------------------------+
 EOF
 fi
 
