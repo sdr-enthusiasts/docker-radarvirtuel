@@ -36,7 +36,7 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     #
     # Copy anfeeder:
     mkdir -p /home/py/ && \
-    cp -f /downloader/ANfeeder /home/py/ANfeeder && \
+    cp /downloader/ANfeeder /home/py/ANfeeder && \
     # remove pycache introduced by testing mlat-client
     find /usr | grep -E "/__pycache__$" | xargs rm -rf || true && \
     # Add Container Version
