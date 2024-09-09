@@ -59,13 +59,15 @@ Verbose    : ${VERBOSE}
 EOF
 fi
 
-# Get the correct version of ANfeeder in place:
-if [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]]; then
-  "${s6wrap[@]}" echo "ERROR: target architecture not supported for $(dpkg --print-architecture) ! Container execution stopped."
-  exit 1
-else
-  ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
-fi
+# Following code is no longer necessary as ANfeeder is now built at container build time
+# Get the correct version of ANfeeder in place
+#if [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]]; then
+#  "${s6wrap[@]}" echo "ERROR: target architecture not supported for $(dpkg --print-architecture) ! Container execution stopped."
+#  exit 1
+#else
+#  ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
+#fi
+
 if chk_enabled "${VERBOSE}"; then
   "${s6wrap[@]}" echo "Sys Arch   : $(dpkg --print-architecture) (supported)"
 fi
