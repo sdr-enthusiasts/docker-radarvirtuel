@@ -1,6 +1,6 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient AS downloader
 RUN --mount=type=bind,source=/source/,target=/source/ \
-    gcc -static /source/anfeeder.c -o /anfeeder -lm -Ofast -W
+    gcc -static /source/anfeeder.c -o /ANfeeder -lm -Ofast -W
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
