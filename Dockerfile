@@ -32,7 +32,7 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # Install mlatclient that was copied in from downloader image
     tar zxf /downloader/mlatclient.tgz -C / && \
     # test mlat-client
-    /usr/bin/mlat-client --help > /dev/null && \
+    /usr/local bin/mlat-client --help > /dev/null || exit 1 && \
     #
     # Copy anfeeder:
     mkdir -p /home/py/ && \
