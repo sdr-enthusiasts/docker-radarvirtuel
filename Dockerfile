@@ -1,4 +1,6 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient AS downloader
+RUN --mount=type=bind,source=/source/,target=/source/ \
+    gcc -static /source/anfeeder.c -o /ANfeeder -lm -Ofast -W
 
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:base
 
@@ -30,7 +32,11 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # Install mlatclient that was copied in from downloader image
     tar zxf /downloader/mlatclient.tgz -C / && \
     # test mlat-client
-    /usr/bin/mlat-client --help > /dev/null && \
+    /usr/local/bin/mlat-client --help > /dev/null || exit 1 && \
+    #
+    # Copy anfeeder:
+    mkdir -p /home/py/ && \
+    cp /downloader/ANfeeder /home/py/ANfeeder && \
     # remove pycache introduced by testing mlat-client
     find /usr | grep -E "/__pycache__$" | xargs rm -rf || true && \
     # Add Container Version
