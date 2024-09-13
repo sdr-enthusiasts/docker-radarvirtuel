@@ -32,15 +32,15 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # Install mlatclient that was copied in from downloader image
     tar zxf /downloader/mlatclient.tgz -C / && \
     # test mlat-client
-    /usr/local/bin/mlat-client --help > /dev/null || exit 1 && \
+    /usr/local/bin/mlat-client --help > /dev/null && \
     #
     # Copy anfeeder:
     mkdir -p /home/py/ && \
     cp /downloader/ANfeeder /home/py/ANfeeder && \
     # remove pycache introduced by testing mlat-client
-    find /usr | grep -E "/__pycache__$" | xargs rm -rf || true && \
+    { find /usr | grep -E "/__pycache__$" | xargs rm -rf || true; } && \
     # Add Container Version
-    [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true && \
+    { [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true; } && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(curl -ssL https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH | awk '{if ($1=="\"sha\":") {print substr($2,2,7); exit}}')_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
     #
     # Clean up
