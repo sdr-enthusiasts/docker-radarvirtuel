@@ -19,6 +19,10 @@
 
 source /scripts/common
 
+if chk_disabled "${ENABLE_MLAT}"; then
+    stop_service
+fi
+
 "${s6wrap[@]}" echo "Started as an s6 service"
 
 MLAT_CMD="/usr/local/bin/mlat-client"

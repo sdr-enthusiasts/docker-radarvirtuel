@@ -28,7 +28,8 @@ services:
       - FEEDER_KEY=${RV_FEEDER_KEY}
       - SOURCE_HOST=${HOSTNAME}:30002
       - RV_SERVER=mg2.adsbnetwork.com:50050
-      # MLAT related params; set "MLAT_HOST=" (empty) to disable MLAT
+      # MLAT related params
+      - ENABLE_MLAT=true
       - MLAT_HOST=${HOSTNAME}:30005
       - MLAT_SERVER=mlat.adsbnetwork.com:50000
       - LAT=${FEEDER_LAT}
