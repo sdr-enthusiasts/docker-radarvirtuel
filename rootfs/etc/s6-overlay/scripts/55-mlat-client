@@ -19,6 +19,10 @@
 
 source /scripts/common
 
+if chk_disabled "${ENABLE_MLAT}"; then
+    exit 0
+fi
+
 "${s6wrap[@]}" echo "Initializing mlat-client..."
 
 MLAT_FLAG="/run/mlat-down"

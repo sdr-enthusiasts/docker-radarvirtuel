@@ -86,10 +86,11 @@ To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the rel
 | `LAT`             | This is your station latitude (used with MLAT)                                                                                                                                                                                               |                                                                                                                 |
 | `LON`             | This is your station longitude (used with MLAT)                                                                                                                                                                                              |                                                                                                                 |
 | `ALT`             | This is your antenna altitude above the ellipsoid (MSL). Use "ft" for feet or "m" for meters                                                                                                                                                 |                                                                                                                 |
+| `ENABLE_MLAT`     | Enable MLAT                                                                                                                                                                                                                                  | `true` (default) / `false`                                                                                      |
 
 ## MLAT Configuration
 
-By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `MLAT_HOST` to empty. You will see a message in the logs encouraging to configure MLAT, followed by a message saying that MLAT is disabled.
+By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `ENABLE_MLAT` to false.
 
 ## Timezone configuration
 
