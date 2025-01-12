@@ -23,15 +23,15 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     # Install all these packages:
     apt-get update -q -y && \
     apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-    ${KEPT_PACKAGES[@]} \
-    ${TEMP_PACKAGES[@]} && \
+    "${KEPT_PACKAGES[@]}" \
+    "${TEMP_PACKAGES[@]}" && \
     #
     # Copy anfeeder:
     mkdir -p /home/py/ && \
     cp /downloader/ANfeeder /home/py/ANfeeder && \
     # Add Container Version
     { [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true; } && \
-    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(curl -ssL https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH | awk '{if ($1=="\"sha\":") {print substr($2,2,7); exit}}')_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
+    echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(curl -ssL "https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH" | awk '{if ($1=="\"sha\":") {print substr($2,2,7); exit}}')_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
     #
     # Clean up
     # apt-get remove -q -y ${TEMP_PACKAGES[@]} && \
