@@ -1,14 +1,32 @@
 # Docker-RadarVirtuel
 
+<!-- TOC -->
+
+- [Docker-RadarVirtuel](#docker-radarvirtuel)
+  - [What is it?](#what-is-it)
+  - [Quick Start Guide](#quick-start-guide)
+  - [Detailed Instructions](#detailed-instructions)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Parameters for `docker-radarvirtuel`](#environment-parameters-for-docker-radarvirtuel)
+  - [MLAT Configuration](#mlat-configuration)
+  - [Timezone configuration](#timezone-configuration)
+  - [Starting, stopping, upgrading, and monitoring the container](#starting-stopping-upgrading-and-monitoring-the-container)
+  - [Troubleshooting](#troubleshooting)
+  - [Further help](#further-help)
+  - [OWNERSHIP AND LICENSE](#ownership-and-license)
+
+<!-- /TOC -->
+
 ## What is it?
 
 This application is a feeder service that takes RAW/AVR ADSB data from a service like `dump1090[-fa]`, `readsb`, and `tar1090`, and feeds this data to `adsbnetwork`'s RadarVirtuel data aggregator. It works similar to other data connectors from the @Mikenye family of ADSB tools.
 
 RadarVirtuel can be reached at:
 
-- http://www.radarvirtuel.com/
+- <http://www.radarvirtuel.com/>
 
-Before you install this container, you need a **feeder key**. To request one, email support@adsbnetwork.com with the following information:
+Before you install this container, you need a **feeder key**. To request one, email <support@adsbnetwork.com> with the following information:
 
 - Your name
 - The Lat/Lon and nearest airport of your station
@@ -30,9 +48,9 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
      - if it's on the local machine -- use the default value of `${HOSTNAME}:30002`
      - if it's on a different machine -- use the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
      - (Note - NEVER put "127.0.0.1" as the IP address - this won't work!)
-3. Make sure that you add the following parameters to your `.env` file, in the same directory as `docker-compose.yml`. You may already have some of these params in that file, in which case it's not necessary to duplicate them. You should have received your feeder key value from support@adsbnetwork.com.
+3. Make sure that you add the following parameters to your `.env` file, in the same directory as `docker-compose.yml`. You may already have some of these params in that file, in which case it's not necessary to duplicate them. You should have received your feeder key value from <support@adsbnetwork.com>.
 
-```
+```config
 RV_FEEDER_KEY=xxxx:123456789ABCDEF
 FEEDER_LAT=12.345678
 FEEDER_LONG=6.7890123
@@ -62,7 +80,7 @@ FEEDER_ALT_M=12.3
 
 For a stand-alone installation on a machine with an existing ADS-B receiver, you can simply do this:
 
-```
+```bash
 sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb && cd /opt/adsb
 wget https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml
 ```
@@ -77,7 +95,7 @@ To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the rel
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `FEEDER_KEY`      | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.                                                                                                                                             | `[icao]:[private_key]`                                                                                          |
 | `SOURCE_HOST`     | host and port number of your ADSB receiver. When running stand-alone on your local machine, this should be `${HOSTNAME}`. The value after the `:` is the port number to the RAW or AVR service on the target machine, most probably `30002`. | `${HOSTNAME}:30002`                                                                                             |
-| `RV_SERVER`       | The hostname and the port of the RadarVirtuel server. You should NOT change this unless specifically instructed. Note - this value may be overwritten/automatically updated if you are in a [predefined zone in North America](https://github.com/user-attachments/assets/c59b6026-3cc0-44ef-92b7-eec886555564) or [Europe](https://github.com/user-attachments/assets/1d76b061-cdfa-45f5-b531-b6030402e29a) | `mg2.adsbnetwork.com:50050`                                                                                     |
+| `RV_SERVER`       | The hostname and the port of the RadarVirtuel server. You should NOT set this parameter unless specifically instructed. Note - this value may be overwritten/automatically updated if you are in a [predefined zone in North America](https://github.com/user-attachments/assets/c59b6026-3cc0-44ef-92b7-eec886555564) or [Europe](https://github.com/user-attachments/assets/1d76b061-cdfa-45f5-b531-b6030402e29a) | `mg22.adsbnetwork.com:50050`                                                                                     |
 | `VERBOSE`         | Write verbose messages to the log                                                                                                                                                                                                            | `OFF` (default) / `ON`                                                                                          |
 | `MLAT_SERVER`     | RV MLAT server address and port - do not change unless instructed to                                                                                                                                                                         | mlat.adsbnetwork.com:50000                                                                                      |
 | `MLAT_HOST`       | This is the same hostname as for SOURCE_HOST, but now using port 30005                                                                                                                                                                       | `${HOSTNAME}:30005`                                                                                             |
@@ -97,7 +115,7 @@ By default, MLAT is switched ON in the container. Please make sure to configure 
 - The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead.
 - To run the container in UTC, comment out the following lines (using `#`) in `docker-compose.yml`:
 
-```
+```yaml
 #    volumes:
 #      - "/etc/localtime:/etc/localtime:ro"
 #      - "/etc/timezone:/etc/timezone:ro"
@@ -148,13 +166,13 @@ To monitor the logs of the RadarVirtuel container:
 
 ## Further help
 
-- For help with credentials and service outages, please email support@adsbnetwork.com
-- For help with the Docker Container and related issues, please contact kx1t on this Discord channel: https://discord.gg/m42azbZydy
+- For help with credentials and service outages, please email <support@adsbnetwork.com>
+- For help with the Docker Container and related issues, please contact kx1t on this Discord channel: <https://discord.gg/m42azbZydy>
 
-# OWNERSHIP AND LICENSE
+## OWNERSHIP AND LICENSE
 
 RADARVIRTUEL is owned by, and copyright by AdsbNetwork and by Laurent Duval. All rights reserved.
-Note that parts of the code and scripts included with this package are NOT covered by an Open Source license, and may only be distributed and used with express permission from AdsbNetwork. Contact support@adsbnetwork.com for more information.
+Note that parts of the code and scripts included with this package are NOT covered by an Open Source license, and may only be distributed and used with express permission from AdsbNetwork. Contact <support@adsbnetwork.com> for more information.
 
 Any modifications to the existing AdsbNetwork scripts and programs, and any additional scripts are provided by `kx1t` under the MIT License as included with this package.
 

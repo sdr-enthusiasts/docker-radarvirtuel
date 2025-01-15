@@ -1,7 +1,7 @@
-#shellcheck shell=bash disable=SC2154
+#shellcheck shell=bash disable=SC2034,SC2154
 
 #---------------------------------------------------------------------------------------------
-# Copyright (C) 2023-2024, Ramon F. Kolb (kx1t) and contributors
+# Copyright (C) 2023-2025, Ramon F. Kolb (kx1t) and contributors
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -22,6 +22,17 @@
 
 # FALLBACK_IMALIVE_SERVICE="http://mg22.adsbnetwork.com/rtools/pyalive.php"
 FALLBACK_IMALIVE_SERVICE="disabled"
+
+# For now - always override the DEFLT zone with any manually configured server in the docker-compose.yml
+# Once the new server is in place, we can remove this override and leave to be set in the docker-compose.yml
+ZONETABLE_OVERRIDE="yes"
+
+# Define default values in case the zone cannot be determined
+zone_id_default="DEFLT"
+zone_name_default="Default (no special config for your location)"
+zone_dns_default="mg22.adsbnetwork.com"
+zone_port_default="50050"
+zone_mlat_default="mlat.adsbnetwork.com:50000"
 
 # associative array with the name, DNS, port, and boundary data for each zone.
 declare -A ZoneTable=(
@@ -293,6 +304,7 @@ declare -A ZoneTable=(
 
 declare -a ZoneNames=()
 for name in "${!ZoneTable[@]}"; do
+    # shellcheck disable=SC2076
     if [[ ! " ${ZoneNames[*]} " =~ " ${name:0:5} " ]]; then
         ZoneNames+=("${name:0:5}")
     fi
@@ -316,4 +328,21 @@ if [[ -n "$LON" ]] && [[ -n "$LAT" ]]; then
     done
 else
     unset zone_name zone_id zone_dns zone_port ZoneTable ZoneNames
+fi
+
+# Set default values in case the station is outside the defined zones:
+
+if [[ -z "$zone_id" ]]; then zone_id="$zone_id_default"; fi
+if [[ -z "$zone_name" ]]; then zone_name="$zone_name_default"; fi
+if [[ -z "$zone_dns" ]]; then zone_dns="$zone_dns_default"; fi
+if [[ -z "$zone_port" ]]; then zone_port="$zone_port_default"; fi
+if [[ -z "$zone_mlat" ]]; then zone_mlat="$zone_mlat_default"; fi
+
+# If the station is in the default zone, and the user has set a custom server, then use the custom server
+# Note - we won't override the MLAT server as this is the same for all zones
+if chk_enabled "$ZONETABLE_OVERRIDE" && [[  "$zone_id" == "DEFLT" ]] && [[ -n "$RV_SERVER" ]]; then
+  zone_id="MNUAL"
+  zone_name="$RV_SERVER (manually set)"
+  zone_dns="${RV_SERVER%%:*}"
+  zone_port="${RV_SERVER##*:}"
 fi

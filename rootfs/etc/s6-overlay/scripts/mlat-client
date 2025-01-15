@@ -20,7 +20,7 @@
 source /scripts/common
 
 if chk_disabled "${ENABLE_MLAT}"; then
-    "${s6wrap[@]}" echo "MLAT is DISABLED (ENABLE_MLAT set to $ENABLE_MLAT)"
+    "${s6wrap[@]}" echo "MLAT is DISABLED (ENABLE_MLAT is set to $ENABLE_MLAT)"
     stop_service
 fi
 
@@ -68,7 +68,7 @@ MLAT_PARAM+=(--alt "${ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
 MLAT_PARAM+=(--user "${FEEDER_KEY}")
 MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
-MLAT_PARAM+=("${PRIVATE_MLAT:+--privacy}")
+if chk_enabled "$PRIVATE_MLAT"; then MLAT_PARAM+=("--privacy"); fi
 
 sleep ${START_DELAY}
 

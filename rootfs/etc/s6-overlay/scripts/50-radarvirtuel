@@ -25,51 +25,28 @@ if [[ "${RV_SERVER%%:*}" == "mg2.adsbnetwork.com" ]]; then
   "${s6wrap[@]}" cat <<EOF
 +------------------------------------------------------------------------+
 | ATTENTION! RV_SERVER mg2.adsbnetwork.com will be retired.              |
-| Please remove the RV_SERVER parameter from  docker-compose.yml         |
+| Please remove the RV_SERVER parameter from docker-compose.yml         |
 | We will use mg22.adsbnetwork.com for this session.                     |
 +------------------------------------------------------------------------+
 EOF
 fi
-RV_SERVER="${RV_SERVER:-mg22.adsbnetwork.com:50050}"
+
 # check if we are in one of the defined zones, and update the server address accordingly:
 source /home/zonetable
-if [[ -n "$zone_id" ]]; then
-  RV_SERVER="${zone_dns}:${zone_port}"
-  "${s6wrap[@]}" cat <<EOF
-Server and port have been updated automatically based on the LAT/LON of the receiver:
+
+"${s6wrap[@]}" echo "Server and port have been set automatically based on the LAT/LON of the receiver:
 Zone ID    : $zone_id
 Zone Name  : $zone_name
 ADSB Server: $zone_dns:$zone_port
 MLAT Server: $zone_mlat
-------------------
-EOF
-else
-  "${s6wrap[@]}" cat <<EOF
-ADSB Server: $RV_SERVER
-MLAT Server: ${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}
-EOF
-fi
+------------------"
 
 if chk_enabled "${VERBOSE}"; then
-  "${s6wrap[@]}" cat <<EOF
-Feeder Key : ${FEEDER_KEY}
+  "${s6wrap[@]}" echo "Feeder Key : ${FEEDER_KEY}
 ADSB Source: ${SOURCE_HOST}
 MLAT Source: ${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}
-Verbose    : ${VERBOSE}
-EOF
-fi
-
-# Following code is no longer necessary as ANfeeder is now built at container build time
-# Get the correct version of ANfeeder in place
-#if [[ ! -f /home/py/ANfeeder-raspy-$(dpkg --print-architecture) ]]; then
-#  "${s6wrap[@]}" echo "ERROR: target architecture not supported for $(dpkg --print-architecture) ! Container execution stopped."
-#  exit 1
-#else
-#  ln -sf "/home/py/ANfeeder-raspy-$(dpkg --print-architecture)" /home/py/ANfeeder
-#fi
-
-if chk_enabled "${VERBOSE}"; then
-  "${s6wrap[@]}" echo "Sys Arch   : $(dpkg --print-architecture) (supported)"
+Sys Arch   : $(dpkg --print-architecture) (supported)
+Verbose    : ${VERBOSE}"
 fi
 
 # Let's do some checks to make sure the parameters look good, at least format-wise:
