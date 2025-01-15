@@ -97,13 +97,13 @@ SOURCE_HOST checked. Connection can be established at $SOURCE_HOST
 EOF
 fi
 
-# Last, check RV_SERVER -- check for UDP connection success
-while [[ $(timeout --preserve-status 10 netcat -u -z -v "${RV_SERVER%%:*}" "${RV_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]]
+# Last, check the RV server -- check for UDP connection success
+while [[ $(timeout --preserve-status 10 netcat -u -z -v "$zone_dns" "$zone_port" 2>/dev/null ; echo $?) != "0" ]]
 do
   "${s6wrap[@]}" cat <<EOF
 ---------------------------------------------------------------
 While testing the RV_SERVER parameter, we ran into trouble:
-We cannot reach ${RV_SERVER%%:*} on port ${RV_SERVER##*:}.
+We cannot reach $zone_dns on port $zone_port.
 We will retry every 10 seconds. If this error keeps on repeating, please
 make sure that your internet connection is still working.
 EOF
@@ -113,7 +113,7 @@ done
 if chk_enabled "${VERBOSE}"; then
   "${s6wrap[@]}" cat <<EOF
 ---------------------------------------------------------------
-RV_SERVER checked. Connection can be established at ${RV_SERVER}
+RV_SERVER checked. Connection can be established at $zone_dns:$zone_port
 We are now starting the ANfeeder process
 EOF
 fi
