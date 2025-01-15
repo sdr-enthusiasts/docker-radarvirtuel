@@ -36,5 +36,6 @@ execstr+=("-s ${SOURCE_HOST}")
 if [[ -n "$START_DELAY" ]]; then sleep "$START_DELAY"; fi
 
 "${s6wrap[@]}" echo "Starting ${execstr[@]}"
-exec "${s6wrap[@]}" "${execstr[@]}"
+# shellcheck disable=SC2068
+exec "${s6wrap[@]}" ${execstr[@]}
 
