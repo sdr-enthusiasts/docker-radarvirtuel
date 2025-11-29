@@ -1,5 +1,3 @@
-version: "3.8"
-
 #
 # If you are using the readsb container to pull your feed from, you may have add the following environment
 # variables to the readsb section:
@@ -31,6 +29,8 @@ services:
       - ENABLE_MLAT=true
       - MLAT_HOST=${HOSTNAME}:30005
       - MLAT_SERVER=mlat.adsbnetwork.com:50000
+      # if you don't use ultrafeeder, remove or modify the following line
+      - MLAT_RESULTS=beast,connect,ultrafeeder,31004
       - LAT=${FEEDER_LAT}
       - LON=${FEEDER_LONG}
       - ALT=${FEEDER_ALT_M}m
