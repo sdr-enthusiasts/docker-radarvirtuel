@@ -51,8 +51,8 @@ MLAT_PARAM+=(--lat "${RV_LAT}")
 MLAT_PARAM+=(--lon "${RV_LON}")
 MLAT_PARAM+=(--alt "${RV_ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
-MLAT_PARAM+=(--user "$(</data/station_id 2>/dev/null || echo "unknown")")
-MLAT_PARAM+=(--uuid "$(</data/station_uid 2>/dev/null || echo "unknown")")
+MLAT_PARAM+=(--user "$(</data/station_id.txt 2>/dev/null || echo "unknown")")
+MLAT_PARAM+=(--uuid "$(</data/station_uid.txt 2>/dev/null || echo "unknown")")
 if chk_enabled "$PRIVATE_MLAT"; then MLAT_PARAM+=("--privacy"); fi
 
 sleep ${START_DELAY}
