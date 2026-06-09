@@ -21,7 +21,6 @@ source /scripts/common
 
 export RV_LAT="${RV_LAT:-$LAT}"
 export RV_LON="${RV_LON:-$LON}"
-export RV_ALT="${RV_ALT:-$ALT}"
 export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
 export BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
 
