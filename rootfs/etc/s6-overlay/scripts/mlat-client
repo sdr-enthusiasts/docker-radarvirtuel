@@ -25,7 +25,7 @@ if chk_disabled "${ENABLE_MLAT}"; then
 fi
 
 ### TEMP DISABLE MLAT
-stop_service
+# stop_service
 
 "${s6wrap[@]}" echo "Started as an s6 service"
 
@@ -35,42 +35,23 @@ MLAT_FLAG="/run/mlat-down"
 MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
 MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
 
+RV_LAT="${RV_LAT:-$LAT}"
+RV_LON="${RV_LON:-$LON}"
+RV_ALT="${RV_ALT_M:-${ALT_M:-${ALT:-0}}}"
+
 # If MLAT_HOST is not defined, use port 30005 (beast_out) on the SOURCE_HOST
-MLAT_HOST="${MLAT_HOST:-${SOURCE_HOST%%:*}:30005}"
 
-START_DELAY=10s
+START_DELAY=15s
 
-# update the MLAT_SERVER from the ZoneTable script:
-source /home/zonetable
-MLAT_SERVER="${zone_mlat:-${MLAT_SERVER}}"
-MLAT_SERVER="${MLAT_SERVER:-mlat.adsbnetwork.com:50000}"
-
-# Do some basic checks:
-# Sleep forever if the initialization process found that MLAT cannot be started
-if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" != "temp" ]]; then stop_service; fi
-# Sleep for 5 minutes if the issue is that the config is correct but the server is down
-if [[ -f ${MLAT_FLAG} ]] && [[ "$(<${MLAT_FLAG})" == "temp" ]]
-then
-	if [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_SERVER%%:*}" "${MLAT_SERVER##*:}" 2>/dev/null ; echo $?) != "0" ]] \
-  		|| [[ $(timeout --preserve-status 10 netcat -z -v "${MLAT_HOST%%:*}" "${MLAT_HOST##*:}" 2>/dev/null ; echo $?) != "0" ]]
-	then
-		"${s6wrap[@]}" echo "MLAT host or server is still down. Trying again in 5 minutes"
-		sleep 5m
-		exit 0
-	fi
-else
-	rm -f "${MLAT_FLAG}"
-fi
-
-MLAT_PARAM=(--input-type "${MLAT_INPUT_TYPE}")
-MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
-MLAT_PARAM+=(--server "${MLAT_SERVER}")
-MLAT_PARAM+=(--lat "${LAT}")
-MLAT_PARAM+=(--lon "${LON}")
-MLAT_PARAM+=(--alt "${ALT}")
+MLAT_PARAM=(--input-type beast)
+MLAT_PARAM+=(--input-connect localhost:30005)
+MLAT_PARAM+=(--server "${MLAT_SERVER:-mlat.adsbnetwork.com:50000}")
+MLAT_PARAM+=(--lat "${RV_LAT}")
+MLAT_PARAM+=(--lon "${RV_LON}")
+MLAT_PARAM+=(--alt "${RV_ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
-MLAT_PARAM+=(--user "${FEEDER_KEY}")
-MLAT_PARAM+=(--uuid "${FEEDER_KEY##*:}")
+MLAT_PARAM+=(--user "$(</data/station_id 2>/dev/null || echo "unknown")")
+MLAT_PARAM+=(--uuid "$(</data/station_uid 2>/dev/null || echo "unknown")")
 if chk_enabled "$PRIVATE_MLAT"; then MLAT_PARAM+=("--privacy"); fi
 
 sleep ${START_DELAY}

@@ -25,14 +25,22 @@ import threading
 import subprocess
 import time
 
-RV_REGISTER  = 'https://radarvirtuel.com/api/station/register'
-RV_FEED_PING = 'https://radarvirtuel.com/api/station/feed_ping'
-UID_FILE     = '/data/station_uid.txt'
-CONFIG_FILE  = '/opt/feeder_rv/config.json'
-UA           = 'Mozilla/5.0 (compatible; RadarVirtuel-feeder/2.0)'
+RV_REGISTER     = 'https://radarvirtuel.com/api/station/register'
+RV_FEED_PING    = 'https://radarvirtuel.com/api/station/feed_ping'
+UID_FILE        = '/data/station_uid.txt'
+STATION_ID_FILE = '/data/station_id.txt'
+CONFIG_FILE     = '/opt/feeder_rv/config.json'
+UA              = 'Mozilla/5.0 (compatible; RadarVirtuel-feeder/2.0)'
 
 def log(msg):
     print(f"[RV] {msg}", flush=True)
+
+def get_container_version():
+    try:
+        with open('/.CONTAINER_VERSION', 'r', encoding='utf-8') as f:
+            return f.read().strip() or 'unknown'
+    except Exception:
+        return 'unknown'
 
 def api_get(url):
     req = urllib.request.Request(url, headers={'User-Agent': UA})
@@ -83,6 +91,17 @@ def get_or_create_uid():
     open(UID_FILE, 'w').write(uid)
     log(f"UID generated: {uid} → saved to {UID_FILE}")
     return uid
+
+
+def save_station_id(station_id):
+    """Persist station ID in Docker volume, similar to UID_FILE usage."""
+    try:
+        os.makedirs('/data', exist_ok=True)
+        with open(STATION_ID_FILE, 'w') as f:
+            f.write(str(station_id).strip())
+        log(f"Station ID saved to {STATION_ID_FILE}: {station_id}")
+    except Exception as e:
+        log(f"Warning: cannot write {STATION_ID_FILE}: {e}")
 
 # ── Coordinates ───────────────────────────────────────────────
 # Priority 1 : RV_LAT / RV_LON env vars
@@ -270,7 +289,7 @@ def launch_feeder():
 # ── Main ──────────────────────────────────────────────────────
 def main():
     log("=" * 50)
-    log("RadarVirtuel Docker Feeder v2.0 — 2026-06-08")
+    log(f"RadarVirtuel Docker Feeder v2 | build {get_container_version()}")
     log("=" * 50)
 
     uid             = get_or_create_uid()
@@ -282,6 +301,7 @@ def main():
     suggested, _    = get_nearest_airport(lat, lon)
     label           = get_station_label(suggested)
     _, label        = register_station(uid, label, lat, lon, alt_m, name, email)
+    save_station_id(label)
 
     generate_config(uid, label, lat, lon, alt_m, name, email)
 

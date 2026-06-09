@@ -92,6 +92,12 @@ The following parameters are supported.
       # ── Feeding Interval ───────────────────────────────────────────
       # How often data is sent to the RadarVirtuel server. Default: 5 secs
       - RV_INTERVAL=${RV_INTERVAL:-5}
+
+      # ── MLAT parameters ───────────────────────────────────────────
+      # Set to "off" to disable MLAT:
+      ENABLE_MLAT=
+
+
 ```
 ## Mapped Volumes
 
@@ -108,6 +114,10 @@ You really ***really*** should map the following volumes:
 - the `/data` volume is used to store your UID. Without this, there's a good change that your station ID will change whenever you restart the container, especially when you are on a machine that doesn't have a Serial Number in `/proc/cpuinfo` (which is the case for most x86 machines)
 - the `/proc/cpuinfo` volume mapping is to retrieve the CPU's serial number, if available. This is used to create a unique station ID
 - the `/etc/localtime` and `/etc/timezone` mappings are to ensure that the container uses the same time and timezone as the host machine
+
+## MLAT results
+
+When MLAT is enabled and there are sufficient MLAT peers using RadarVirtuel in your region, you can feed the MLAT results back to your map. These are made available in the container on the default 
 
 ## Recovering Station ID after a hardware change
 
