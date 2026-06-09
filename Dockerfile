@@ -1,35 +1,29 @@
-FROM ghcr.io/sdr-enthusiasts/docker-baseimage:mlatclient AS downloader
-RUN --mount=type=bind,source=/source/,target=/source/ \
-    gcc -static /source/anfeeder.c -o /ANfeeder -lm -Ofast -W
-
+# ─────────────────────────────────────────────────────────────
+# Dockerfile — docker-radarvirtuel v2.0
+# Version     : v2.2 — 2026-06-09
+# Description : RadarVirtuel Docker feeder v2.2
+#               feeder_radarvirtuel.py — POST /api/feed avec tagging station
+#               Base: sdr-enthusiasts/docker-baseimage:wreadsb
+# Author      : kx1t <kx1t@kx1t.com>
+# Org. Author : Laurent Duval <laurent.duval@adsbnetwork.com>   
+# ─────────────────────────────────────────────────────────────
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:wreadsb
 
-ENV PRIVATE_MLAT="false" \
-    MLAT_INPUT_TYPE="dump1090"
+LABEL maintainer="kx1t@kx1t.com"
+LABEL org.opencontainers.image.title="docker-radarvirtuel v2"
+LABEL org.opencontainers.image.description="RadarVirtuel ADS-B feeder v2.2"
+LABEL org.opencontainers.image.url="https://radarvirtuel.com"
+LABEL org.opencontainers.image.version="2.2"
 
-ARG VERSION_REPO="sdr-enthusiasts/docker-radarvirtuel" \
-VERSION_BRANCH="##BRANCH##"
+ARG VERSION_REPO="sdr-enthusiasts/docker-radarvirtuel"
+ARG VERSION_BRANCH="##BRANCH##"
 
-SHELL ["/bin/bash", "-x", "-o", "pipefail", "-c"]
-RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
-    # define packages needed for installation and general management of the container:
-    TEMP_PACKAGES=() && \
-    KEPT_PACKAGES=() && \
-    KEPT_PACKAGES+=(procps) && \
-    KEPT_PACKAGES+=(psmisc) && \
-    # Needed for the new ImAlive:
-    KEPT_PACKAGES+=(tcpdump) && \
-    #
-    # Install all these packages:
-    apt-get update -q -y && \
+ENV RV_AIRCRAFT_URL="file:///run/readsb/aircraft.json"
+
+RUN apt-get update -q && \
     apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
-    "${KEPT_PACKAGES[@]}" \
-    "${TEMP_PACKAGES[@]}" && \
+        python3-requests && \
     #
-    # Copy anfeeder:
-    mkdir -p /home/py/ && \
-    cp /downloader/ANfeeder /home/py/ANfeeder && \
-    # Add Container Version
     { [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true; } && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_$(curl -ssL "https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH" | awk '{if ($1=="\"sha\":") {print substr($2,2,7); exit}}')_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
     #
@@ -41,9 +35,19 @@ RUN --mount=type=bind,from=downloader,source=/,target=/downloader/ \
     #
     # Do some stuff for kx1t's convenience:
     echo "alias dir=\"ls -alsv\"" >> /root/.bashrc && \
-    echo "alias nano=\"nano -l\"" >> /root/.bashrc
+    echo "alias nano=\"nano -l\"" >> /root/.bashrc && \
+    mkdir -p /data /opt/feeder_rv
 
+COPY docker-entrypoint.py /entrypoint.py
+COPY feeder_radarvirtuel.py /opt/feeder_rv/feeder_radarvirtuel.py
 COPY rootfs/ /
 
-# Add healthcheck
-HEALTHCHECK --start-period=60s --interval=600s CMD /home/healthcheck/healthcheck.sh
+
+VOLUME ["/data"]
+
+ENV RV_ALT_M=0
+ENV RV_INTERVAL=5
+ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
+
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+    CMD grep -q "OK" /var/log/feeder_rv.log 2>/dev/null || exit 1

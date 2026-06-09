@@ -24,6 +24,9 @@ if chk_disabled "${ENABLE_MLAT}"; then
     stop_service
 fi
 
+### TEMP DISABLE MLAT
+stop_service
+
 "${s6wrap[@]}" echo "Started as an s6 service"
 
 MLAT_CMD="/usr/local/bin/mlat-client"

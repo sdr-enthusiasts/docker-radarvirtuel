@@ -18,17 +18,31 @@
 #---------------------------------------------------------------------------------------------
 
 source /scripts/common
-"${s6wrap[@]}" echo "Started as an s6 service"
-
-START_DELAY=5s
 
 export RV_LAT="${RV_LAT:-$LAT}"
 export RV_LON="${RV_LON:-$LON}"
 export RV_ALT="${RV_ALT:-$ALT}"
+export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
+export BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
 
-execstr="python3 -u /entrypoint.py"
+if [[ -z "$RV_LAT" || -z "$RV_LON" ]]; then
+    "${s6wrap[@]}" echo "RV_LAT (or LAT) and RV_LON (or LON) must be set to the feeder's location. Please check your configuration."
+    stop_service
+fi
 
-if [[ -n "$START_DELAY" ]]; then sleep "$START_DELAY"; fi
+if [[ -z "$BEASTHOST" ]]; then
+    "${s6wrap[@]}" echo "BEASTHOST or SOURCE_HOST is not set. Defaulting to \"ultrafeeder\"."
+    BEASTHOST="ultrafeeder"
+fi
+
+if [[ -z "$BEASTPORT" ]]; then
+    "${s6wrap[@]}" echo "BEASTPORT (or SOURCE_PORT) is not set. Defaulting to \"30005\"."
+    BEASTPORT="30005"
+fi
+
+"${s6wrap[@]}" echo "Started as an s6 service"
+
+execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-json-port=30047 --net-connector=${BEASTHOST},${BEASTPORT},beast_in"
 
 "${s6wrap[@]}" echo "Starting ${execstr[@]}"
 # shellcheck disable=SC2068
