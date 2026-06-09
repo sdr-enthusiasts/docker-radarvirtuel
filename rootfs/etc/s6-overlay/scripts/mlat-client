@@ -30,10 +30,11 @@ fi
 "${s6wrap[@]}" echo "Started as an s6 service"
 
 MLAT_CMD="/usr/local/bin/mlat-client"
-MLAT_FLAG="/run/mlat-down"
 
 MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
 MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
+
+MLAT_HOST="${MLAT_HOST:-localhost:30005}"
 
 RV_LAT="${RV_LAT:-$LAT}"
 RV_LON="${RV_LON:-$LON}"
@@ -44,7 +45,7 @@ RV_ALT="${RV_ALT_M:-${ALT_M:-${ALT:-0}}}"
 START_DELAY=15s
 
 MLAT_PARAM=(--input-type beast)
-MLAT_PARAM+=(--input-connect localhost:30005)
+MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
 MLAT_PARAM+=(--server "${MLAT_SERVER:-mlat.adsbnetwork.com:50000}")
 MLAT_PARAM+=(--lat "${RV_LAT}")
 MLAT_PARAM+=(--lon "${RV_LON}")
