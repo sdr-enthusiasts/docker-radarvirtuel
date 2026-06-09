@@ -67,9 +67,16 @@ def api_post(url, payload_dict, uid):
 # Priority 3 : persisted UUID in Docker volume /data/station_uid.txt
 # Priority 4 : generate new UUID and persist it
 def get_or_create_uid():
+    def persist_uid(uid_value):
+        os.makedirs('/data', exist_ok=True)
+        with open(UID_FILE, 'w') as f:
+            f.write(uid_value)
+
     env_uid = os.environ.get('RV_STATION_UID', '').strip()
     if env_uid and len(env_uid) >= 8:
+        persist_uid(env_uid)
         log(f"UID from environment: {env_uid}")
+        log(f"UID saved to {UID_FILE}")
         return env_uid
     try:
         with open('/host/cpuinfo') as f:
@@ -77,7 +84,9 @@ def get_or_create_uid():
                 if line.startswith('Serial'):
                     serial = line.split(':')[1].strip().lstrip('0')
                     if serial and len(serial) >= 8:
+                        persist_uid(serial)
                         log(f"UID from CPU serial: {serial}")
+                        log(f"UID saved to {UID_FILE}")
                         return serial
     except Exception:
         pass
@@ -85,10 +94,11 @@ def get_or_create_uid():
     if os.path.exists(UID_FILE):
         uid = open(UID_FILE).read().strip()
         if uid and len(uid) >= 8:
+            persist_uid(uid)
             log(f"UID loaded from {UID_FILE}: {uid}")
             return uid
     uid = uuid.uuid4().hex
-    open(UID_FILE, 'w').write(uid)
+    persist_uid(uid)
     log(f"UID generated: {uid} → saved to {UID_FILE}")
     return uid
 
