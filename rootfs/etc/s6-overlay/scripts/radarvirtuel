@@ -26,6 +26,7 @@ export RV_LON="${RV_LON:-$LON}"
 export RV_ALT="${RV_ALT:-$ALT}"
 
 if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
+    sleep 2 
     "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
     "${s6wrap[@]}" echo "ATTENTION - this container has been updated, but your environment variables"
     "${s6wrap[@]}" echo "are still reflecting the old configuration. Please update your configuration"
