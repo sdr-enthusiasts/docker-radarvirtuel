@@ -24,7 +24,6 @@ export RV_LON="${RV_LON:-$LON}"
 export RV_ALT="${RV_ALT:-$ALT}"
 export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
 export BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
-BEAST
 
 if [[ -z "$RV_LAT" || -z "$RV_LON" ]]; then
     "${s6wrap[@]}" echo "RV_LAT (or LAT) and RV_LON (or LON) must be set to the feeder's location. Please check your configuration."
@@ -43,7 +42,7 @@ fi
 
 "${s6wrap[@]}" echo "Started as an s6 service"
 
-execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-json-port=30047 --net-connector=${BEASTHOST},${BEASTPORT},beast_in"
+execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-json-port=30047 --net-connector=${BEASTHOST},${BEASTPORT},beast_in --net-bo-port=30005"
 
 "${s6wrap[@]}" echo "Starting ${execstr[@]}"
 # shellcheck disable=SC2068
