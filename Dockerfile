@@ -43,7 +43,6 @@ COPY rootfs/ /
 
 VOLUME ["/data"]
 
-ENV RV_ALT_M=0
 ENV RV_INTERVAL=5
 ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
 ENV MLAT_SERVER=mlat.adsbnetwork.com:50000

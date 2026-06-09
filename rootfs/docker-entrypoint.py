@@ -104,12 +104,12 @@ def save_station_id(station_id):
         log(f"Warning: cannot write {STATION_ID_FILE}: {e}")
 
 # ── Coordinates ───────────────────────────────────────────────
-# Priority 1 : RV_LAT / RV_LON env vars
+# Priority 1 : RV_LAT / RV_LON / LAT / LON env vars
 # Priority 2 : /etc/default/mlat-client monté dans le container
 def get_coords():
-    lat = os.environ.get('RV_LAT', '').strip()
-    lon = os.environ.get('RV_LON', '').strip()
-    alt = os.environ.get('RV_ALT_M', '0').strip()
+    lat = os.environ.get('RV_LAT', '').strip() or os.environ.get('LAT', '').strip()
+    lon = os.environ.get('RV_LON', '').strip() or os.environ.get('LON', '').strip()
+    alt = os.environ.get('RV_ALT_M', '').strip() or os.environ.get('ALT_M', '').strip() or os.environ.get('ALT', '0').strip()
     if not lat or not lon:
         try:
             with open('/etc/default/mlat-client') as f:
