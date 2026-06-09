@@ -26,7 +26,7 @@ export RV_LAT="${RV_LAT:-$LAT}"
 export RV_LON="${RV_LON:-$LON}"
 export RV_ALT="${RV_ALT:-$ALT}"
 
-execstr="python3 -u /entrypoint.py"
+execstr="python3 -u /docker-entrypoint.py"
 
 if [[ -n "$START_DELAY" ]]; then sleep "$START_DELAY"; fi
 

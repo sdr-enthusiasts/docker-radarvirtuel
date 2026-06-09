@@ -38,8 +38,6 @@ RUN apt-get update -q && \
     echo "alias nano=\"nano -l\"" >> /root/.bashrc && \
     mkdir -p /data /opt/feeder_rv
 
-COPY docker-entrypoint.py /entrypoint.py
-COPY feeder_radarvirtuel.py /opt/feeder_rv/feeder_radarvirtuel.py
 COPY rootfs/ /
 
 
