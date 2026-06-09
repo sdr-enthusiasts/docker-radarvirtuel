@@ -32,6 +32,9 @@ if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
     "${s6wrap[@]}" echo "are still reflecting the old configuration. Please update your configuration"
     "${s6wrap[@]}" echo "using this example: https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml"
     "${s6wrap[@]}" echo "The container is HALTED until you make these updates."
+    "${s6wrap[@]}" echo "Then remove these parameters from the old configuration to make this message go away:"
+    [[ -n "$RV_SERVER" ]] && "${s6wrap[@]}" echo "RV_SERVER=$RV_SERVER" || true
+    [[ -n "$FEEDER_KEY" ]] && "${s6wrap[@]}" echo "FEEDER_KEY=$FEEDER_KEY" || true
     "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
     stop_service
 fi
