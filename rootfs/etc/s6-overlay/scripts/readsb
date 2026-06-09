@@ -19,6 +19,10 @@
 
 source /scripts/common
 
+if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
+    stop_service
+fi
+
 export RV_LAT="${RV_LAT:-$LAT}"
 export RV_LON="${RV_LON:-$LON}"
 export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"

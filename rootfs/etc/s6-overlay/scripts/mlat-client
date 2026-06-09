@@ -24,6 +24,10 @@ if chk_disabled "${ENABLE_MLAT}"; then
     stop_service
 fi
 
+if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
+    stop_service
+fi
+
 ### TEMP DISABLE MLAT
 # stop_service
 
