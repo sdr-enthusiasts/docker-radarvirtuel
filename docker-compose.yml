@@ -21,22 +21,19 @@ services:
     hostname: radarvirtuel
     restart: always
     environment:
-      # Basic RadarVirtuel params:
-      - FEEDER_KEY=${RV_FEEDER_KEY}
-      - SOURCE_HOST=${HOSTNAME}:30002
-      - RV_SERVER=mg2.adsbnetwork.com:50050
-      # MLAT related params
-      - ENABLE_MLAT=true
-      - MLAT_HOST=${HOSTNAME}:30005
-      - MLAT_SERVER=mlat.adsbnetwork.com:50000
-      # if you don't use ultrafeeder, remove or modify the following line
-      - MLAT_RESULTS=beast,connect,ultrafeeder,31004
+      # BEASTHOST: ADSB data source in Beast format. Default value if omitted: "Ultrafeeder"
+      - BEASTHOST=
+      # RV_CONTRIB_NAME and RV_CONTRIB_EMAIL: Mandatory parameters! Container won't run without them.
+      - RV_CONTRIB_NAME=
+      - RV_CONTRIB_EMAIL=
+      # LAT / LON / ALT_M: mandatory parameters!
       - LAT=${FEEDER_LAT}
       - LON=${FEEDER_LONG}
-      - ALT=${FEEDER_ALT_M}m
-      - VERBOSE=ON
+      - ALT_M=${FEEDER_ALT_M:-0}
     tmpfs:
-      - /tmp:rw,nosuid,nodev,noexec,relatime,size=128M
+      - /tmp:rw,nosuid,nodev,noexec,relatime
     volumes:
+      - "./rv_data:/data:rw"
+      - "/proc/cpuinfo:/host/cpuinfo:ro"
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"

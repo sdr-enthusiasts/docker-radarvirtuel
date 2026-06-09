@@ -31,7 +31,7 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
 # ── Logging ───────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
+    format='[%(levelname)s] %(message)s',
     handlers=[
         logging.StreamHandler(),
         logging.FileHandler('/var/log/feeder_rv.log', encoding='utf-8')
@@ -160,7 +160,7 @@ def main():
     logger.info(f"[START] Feeder RadarVirtuel — station {station}")
     logger.info(f"[CFG]   URL={rv_url}")
     logger.info(f"[CFG]   UID={rv_uid}")
-    logger.info(f"[CFG]   Intervalle={interval}s")
+    logger.info(f"[CFG]   Interval={interval}s")
     logger.info("=" * 50)
 
     # Session persistante pour les connexions HTTP
