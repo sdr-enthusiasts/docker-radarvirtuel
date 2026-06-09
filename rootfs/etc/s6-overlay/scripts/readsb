@@ -45,7 +45,7 @@ fi
 
 "${s6wrap[@]}" echo "Started as an s6 service"
 
-execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-json-port=30047 --net-connector=${BEASTHOST},${BEASTPORT},beast_in --net-bo-port=30005"
+execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-connector=${BEASTHOST},${BEASTPORT},beast_in --net-bo-port=30005"
 
 "${s6wrap[@]}" echo "Starting ${execstr[@]}"
 # shellcheck disable=SC2068
