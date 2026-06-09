@@ -39,6 +39,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('feeder_rv')
 
+
 # ── Charger config ────────────────────────────────────────────────────────
 def load_config():
     """Lit config.json — cree un config minimal si absent."""
