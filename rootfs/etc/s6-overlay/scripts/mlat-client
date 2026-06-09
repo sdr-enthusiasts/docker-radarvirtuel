@@ -44,6 +44,11 @@ RV_ALT="${RV_ALT_M:-${ALT_M:-${ALT:-0}}}"
 
 START_DELAY=15s
 
+# don't start MLAT until we have the station ID and UID
+while [[ ! -f /data/station_id.txt && ! -f /data/station_uid.txt ]]; do
+	sleep 1
+done
+
 MLAT_PARAM=(--input-type beast)
 MLAT_PARAM+=(--input-connect "${MLAT_HOST}")
 MLAT_PARAM+=(--server "${MLAT_SERVER:-mlat.adsbnetwork.com:50000}")
@@ -51,8 +56,8 @@ MLAT_PARAM+=(--lat "${RV_LAT}")
 MLAT_PARAM+=(--lon "${RV_LON}")
 MLAT_PARAM+=(--alt "${RV_ALT}")
 MLAT_PARAM+=(--results "${MLAT_RESULTS}")
-MLAT_PARAM+=(--user "$(</data/station_id.txt 2>/dev/null || echo "unknown")")
-MLAT_PARAM+=(--uuid "$(</data/station_uid.txt 2>/dev/null || echo "unknown")")
+MLAT_PARAM+=(--user "$(</data/station_id.txt)")
+MLAT_PARAM+=(--uuid "$(</data/station_uid.txt)")
 if chk_enabled "$PRIVATE_MLAT"; then MLAT_PARAM+=("--privacy"); fi
 
 sleep ${START_DELAY}
