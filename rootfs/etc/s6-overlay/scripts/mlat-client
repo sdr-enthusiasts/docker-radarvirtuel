@@ -52,7 +52,7 @@ RV_ALT="${RV_ALT:-${RV_ALT_M:-${ALT_M:-${ALT:-0}}}}"
 START_DELAY=15s
 
 # don't start MLAT until we have the station ID and UID
-while [[ ! -f /data/station_id.txt && ! -f /data/station_uid.txt ]]; do
+while [[ ! -f /data/station_id.txt || ! -f /data/station_uid.txt ]]; do
 	sleep 1
 done
 
