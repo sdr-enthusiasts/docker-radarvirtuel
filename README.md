@@ -116,6 +116,7 @@ If you change your hardware, there's a good chance that the station ID will chan
 1. Log in to the original machine and retrieve the UID: `cat /opt/adsb/rv_data/station_uid.txt`
 2. Add the following parameter to the `environment:` section of your `docker-compose.yml` file:
    ```yaml
+   RV_STATION_LABEL=original_station_label
    RV_STATION_UID=uid_from_the_original_machine
    ```
 3. Restart your container
