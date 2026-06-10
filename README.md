@@ -6,6 +6,7 @@
   - [What is it?](#what-is-it)
   - [Quick Start Guide](#quick-start-guide)
   - [Upgrade from an older RadarVirtuel configuration](#upgrade-from-an-older-radarvirtuel-configuration)
+    - [Upgrade Troubleshooting](#upgrade-troubleshooting)
   - [All parameters](#all-parameters)
     - [Mandatory parameters](#mandatory-parameters)
     - [Optional parameters](#optional-parameters)
@@ -63,14 +64,24 @@ If things don't appear to work, check the container logs with this command: `doc
 ```text
 [2026-06-10 11:06:09.420][radarvirtuel] -----------------------------------------------------------------------------
 [2026-06-10 11:06:09.465][radarvirtuel] ATTENTION - this container has been updated, but your environment variables
-[2026-06-10 11:06:09.482][radarvirtuel] are still reflecting the old configuration. Please update your configuration
-[2026-06-10 11:06:09.526][radarvirtuel] using this example: https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml
+[2026-06-10 11:06:09.482][radarvirtuel] are still reflecting the old configuration.
+[2026-06-10 11:06:09.526][radarvirtuel] Please update your configuration using this example:
+[2026-06-10 11:06:09.536][radarvirtuel] https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml
 [2026-06-10 11:06:09.546][radarvirtuel] The container is HALTED until you make these updates.
 [2026-06-10 11:06:09.568][radarvirtuel] Then remove these parameters from your configuration to make this message go away:
 [2026-06-10 11:06:09.600][radarvirtuel] RV_SERVER=mg22.adsbnetwork.com:50014
 [2026-06-10 11:06:09.611][radarvirtuel] FEEDER_KEY=xxxx:CFD76443214321423ADC786B4E303173B3B5
 [2026-06-10 11:06:09.641][radarvirtuel] -----------------------------------------------------------------------------
 ```
+
+```text
+[2026-06-10 11:31:44.689][radarvirtuel] -----------------------------------------------------------------------------
+[2026-06-10 11:31:44.702][radarvirtuel] ATTENTION - the RV_CONTRIB_NAME and RV_CONTRIB_EMAIL environment variables are not set.
+[2026-06-10 11:31:44.732][radarvirtuel] Please update your configuration using this example:
+[2026-06-10 11:31:44.769][radarvirtuel] https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml
+[2026-06-10 11:31:44.789][radarvirtuel] The container is HALTED until you make these updates.
+[2026-06-10 11:31:44.798][radarvirtuel] -----------------------------------------------------------------------------
+````
 
 ## All parameters
 
