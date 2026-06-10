@@ -44,11 +44,22 @@ logger = logging.getLogger('feeder_rv')
 _verbose_value = os.getenv('VERBOSE', '').strip().lower()
 _verbose_enabled = _verbose_value in {'on', 'true', 'yes', '1', 'enable', 'enabled'}
 
-if not _verbose_enabled:
-    def _quiet_info(*args, **kwargs):
-        return None
+class _VerboseInfoFilter(logging.Filter):
+    """Hide INFO logs from standard outputs when VERBOSE is not enabled."""
 
-    logger.info = _quiet_info  # type: ignore[assignment]
+    def __init__(self, verbose_enabled):
+        super().__init__()
+        self.verbose_enabled = verbose_enabled
+
+    def filter(self, record):
+        if record.levelno == logging.INFO and not self.verbose_enabled:
+            return False
+        return True
+
+
+_verbose_filter = _VerboseInfoFilter(_verbose_enabled)
+for _handler in logging.getLogger().handlers:
+    _handler.addFilter(_verbose_filter)
 
 
 class HealthStatusHandler(logging.Handler):
