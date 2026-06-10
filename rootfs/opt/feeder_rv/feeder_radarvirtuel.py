@@ -96,6 +96,7 @@ class HealthStatusHandler(logging.Handler):
 
         tmp_path = self.path + '.tmp'
         with open(tmp_path, 'w', encoding='utf-8') as f:
+            f.write('LEVEL,LAST_EPOCH,COUNT_IN_LAST_10_MINS,LAST_MSG\n')
             f.write('\n'.join(lines) + '\n')
         os.replace(tmp_path, self.path)
 
