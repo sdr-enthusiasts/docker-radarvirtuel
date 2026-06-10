@@ -1,8 +1,7 @@
 # ─────────────────────────────────────────────────────────────
-# Dockerfile — docker-radarvirtuel v2.0
-# Version     : v2.2 — 2026-06-09
-# Description : RadarVirtuel Docker feeder v2.2
-#               feeder_radarvirtuel.py — POST /api/feed avec tagging station
+# Dockerfile — docker-radarvirtuel v2
+# Description : RadarVirtuel Docker feeder v2
+#               feeder_radarvirtuel.py — POST /api/feed with station tagging
 #               Base: sdr-enthusiasts/docker-baseimage:wreadsb
 # Author      : kx1t <kx1t@kx1t.com>
 # Org. Author : Laurent Duval <laurent.duval@adsbnetwork.com>   
@@ -10,15 +9,22 @@
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:wreadsb
 
 LABEL maintainer="kx1t@kx1t.com"
+LABEL org.opencontainers.image.authors="Laurent Duval <laurent.duval@adsbnetwork.com>, Ramon F. Kolb (kx1t) <kx1t@kx1t.com>"
 LABEL org.opencontainers.image.title="docker-radarvirtuel v2"
-LABEL org.opencontainers.image.description="RadarVirtuel ADS-B feeder v2.2"
+LABEL org.opencontainers.image.description="RadarVirtuel ADS-B feeder v2"
 LABEL org.opencontainers.image.url="https://radarvirtuel.com"
-LABEL org.opencontainers.image.version="2.2"
+LABEL org.opencontainers.image.version="2"
 
 ARG VERSION_REPO="sdr-enthusiasts/docker-radarvirtuel"
 ARG VERSION_BRANCH="##BRANCH##"
 
 ENV RV_AIRCRAFT_URL="file:///run/readsb/aircraft.json"
+ENV RV_INTERVAL=5
+ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
+ENV MLAT_SERVER=mlat.adsbnetwork.com:50000
+ENV VERBOSE=off
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update -q && \
     apt-get install -o APT::Autoremove::RecommendsImportant=0 -o APT::Autoremove::SuggestsImportant=0 -o Dpkg::Options::="--force-confold" -y --no-install-recommends  --no-install-suggests \
@@ -41,11 +47,6 @@ RUN apt-get update -q && \
 COPY rootfs/ /
 
 VOLUME ["/data"]
-
-ENV RV_INTERVAL=5
-ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
-ENV MLAT_SERVER=mlat.adsbnetwork.com:50000
-ENV VERBOSE=off
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
     CMD /scripts/healthcheck.sh
