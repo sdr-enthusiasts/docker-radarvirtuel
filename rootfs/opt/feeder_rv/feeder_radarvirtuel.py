@@ -16,6 +16,8 @@ import time
 import logging
 import os
 import sys
+from collections import deque
+from threading import Lock
 from urllib.parse import urlparse, unquote
 
 # ── Compatibilite Buster : urllib3 peut manquer de certaines fonctions ──
@@ -38,6 +40,78 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger('feeder_rv')
+
+
+class HealthStatusHandler(logging.Handler):
+    """Maintain /tmp/healthstatus with last INFO/WARNING/ERROR and rolling counts."""
+
+    WINDOW_SECONDS = 600
+
+    def __init__(self, path='/tmp/healthstatus'):
+        super().__init__()
+        self.path = path
+        self._lock = Lock()
+        self._state = {
+            'INFO': {'last_epoch': 0, 'last_text': '', 'times': deque()},
+            'WARNING': {'last_epoch': 0, 'last_text': '', 'times': deque()},
+            'ERROR': {'last_epoch': 0, 'last_text': '', 'times': deque()},
+        }
+
+    def _category_for_record(self, record):
+        if record.levelno >= logging.ERROR:
+            return 'ERROR'
+        if record.levelno >= logging.WARNING:
+            return 'WARNING'
+        if record.levelno >= logging.INFO:
+            return 'INFO'
+        return None
+
+    def _prune(self, now_epoch):
+        cutoff = now_epoch - self.WINDOW_SECONDS
+        for item in self._state.values():
+            times = item['times']
+            while times and times[0] < cutoff:
+                times.popleft()
+
+    def _write_status_file(self):
+        lines = []
+        for level in ('INFO', 'WARNING', 'ERROR'):
+            item = self._state[level]
+            line = '{},{},{},{}'.format(
+                level,
+                item['last_epoch'],
+                len(item['times']),
+                item['last_text'].replace('\n', ' ').replace('\r', ' ')
+            )
+            lines.append(line)
+
+        tmp_path = self.path + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+        os.replace(tmp_path, self.path)
+
+    def emit(self, record):
+        try:
+            now_epoch = int(time.time())
+            category = self._category_for_record(record)
+
+            with self._lock:
+                self._prune(now_epoch)
+
+                if category is not None:
+                    item = self._state[category]
+                    item['last_epoch'] = now_epoch
+                    item['last_text'] = record.getMessage()
+                    item['times'].append(now_epoch)
+
+                self._write_status_file()
+        except Exception:
+            self.handleError(record)
+
+
+health_status_handler = HealthStatusHandler('/tmp/healthstatus')
+health_status_handler.setLevel(logging.INFO)
+logger.addHandler(health_status_handler)
 
 
 # ── Charger config ────────────────────────────────────────────────────────

@@ -1,5 +1,4 @@
-#!/command/with-contenv bash
-#shellcheck shell=bash
+#!/usr/bin/env bash
 
 #---------------------------------------------------------------------------------------------
 # Copyright (C) 2023-2024, Ramon F. Kolb (kx1t) and contributors
@@ -17,23 +16,28 @@
 # If not, see <https://www.gnu.org/licenses/>.
 #---------------------------------------------------------------------------------------------
 
-# Import healthchecks-framework
-# shellcheck disable=SC1091
-source /opt/healthchecks-framework/healthchecks.sh
+set -euo pipefail
 
-# HEALTHLIMIT is the number of error lines that can be in run/imalive/errors before things go UNHEALTHY
-HEALTHLIMIT=20
+STATUS_FILE="/tmp/healthstatus"
+MAX_WARNING=10
+MAX_ERROR=5
 
-APPNAME="$(hostname)/healthcheck"
-
-touch /run/imalive/errors
-#shellcheck disable=SC2002
-if [[ "$(cat /run/imalive/errors | wc -l)" -ge "$HEALTHLIMIT" ]]
-then
-    echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(cat /run/imalive/errors | wc -l): UNHEALTHY (>= $HEALTHLIMIT)"
-    exit 1
-else
-    #shellcheck disable=SC2002
-    [[ "$VERBOSE" == "ON" ]] && echo "[$APPNAME][$(date)] Abnormal death count for RadarVirtuel is $(cat /run/imalive/errors | wc -l): HEALTHY (< $HEALTHLIMIT)"
+if [[ ! -f "$STATUS_FILE" ]]; then
+  # status file not yet existing, let's assume everything is fine for now
+  echo "Status not yet available"
+  exit 0
 fi
+
+cat "$STATUS_FILE"
+
+warning_count="$(awk -F',' '$1=="WARNING" { print $3; exit }' "$STATUS_FILE")"
+error_count="$(awk -F',' '$1=="ERROR" { print $3; exit }' "$STATUS_FILE")"
+
+[[ "$warning_count" =~ ^[0-9]+$ ]] || warning_count=0
+[[ "$error_count" =~ ^[0-9]+$ ]] || error_count=0
+
+if (( warning_count >= MAX_WARNING || error_count >= MAX_ERROR )); then
+	exit 1
+fi
+
 exit 0
