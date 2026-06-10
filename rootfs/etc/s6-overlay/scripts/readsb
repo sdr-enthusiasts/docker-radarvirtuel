@@ -19,29 +19,33 @@
 
 source /scripts/common
 
-START_DELAY=5s
-
-export RV_LAT="${RV_LAT:-$LAT}"
-export RV_LON="${RV_LON:-$LON}"
-export RV_ALT="${RV_ALT:-$ALT}"
-
 if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
-    sleep 2 
-    "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
-    "${s6wrap[@]}" echo "ATTENTION - this container has been updated, but your environment variables"
-    "${s6wrap[@]}" echo "are still reflecting the old configuration. Please update your configuration"
-    "${s6wrap[@]}" echo "using this example: https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml"
-    "${s6wrap[@]}" echo "The container is HALTED until you make these updates."
-    "${s6wrap[@]}" echo "Then remove these parameters from your configuration to make this message go away:"
-    [[ -n "$RV_SERVER" ]] && "${s6wrap[@]}" echo "RV_SERVER=$RV_SERVER" || true
-    [[ -n "$FEEDER_KEY" ]] && "${s6wrap[@]}" echo "FEEDER_KEY=$FEEDER_KEY" || true
-    "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
     stop_service
 fi
 
-execstr="python3 -u /docker-entrypoint.py"
+export RV_LAT="${RV_LAT:-$LAT}"
+export RV_LON="${RV_LON:-$LON}"
+export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
+export BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
 
-if [[ -n "$START_DELAY" ]]; then sleep "$START_DELAY"; fi
+if [[ -z "$RV_LAT" || -z "$RV_LON" ]]; then
+    "${s6wrap[@]}" echo "RV_LAT (or LAT) and RV_LON (or LON) must be set to the feeder's location. Please check your configuration."
+    stop_service
+fi
+
+if [[ -z "$BEASTHOST" ]]; then
+    "${s6wrap[@]}" echo "BEASTHOST or SOURCE_HOST is not set. Defaulting to \"ultrafeeder\"."
+    BEASTHOST="ultrafeeder"
+fi
+
+if [[ -z "$BEASTPORT" ]]; then
+    "${s6wrap[@]}" echo "BEASTPORT (or SOURCE_PORT) is not set. Defaulting to \"30005\"."
+    BEASTPORT="30005"
+fi
+
+"${s6wrap[@]}" echo "Started as an s6 service"
+
+execstr="/usr/local/bin/readsb --net --quiet --lat ${RV_LAT} --lon ${RV_LON} --write-json=/run/readsb --json-reliable=1 --net-connector=${BEASTHOST},${BEASTPORT},beast_in --net-bo-port=30005"
 
 "${s6wrap[@]}" echo "Starting ${execstr[@]}"
 # shellcheck disable=SC2068

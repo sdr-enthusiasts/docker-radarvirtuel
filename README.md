@@ -5,14 +5,13 @@
 - [Docker-RadarVirtuel](#docker-radarvirtuel)
   - [What is it?](#what-is-it)
   - [Quick Start Guide](#quick-start-guide)
-  - [Detailed Instructions](#detailed-instructions)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Parameters for `docker-radarvirtuel`](#environment-parameters-for-docker-radarvirtuel)
-  - [MLAT Configuration](#mlat-configuration)
-  - [Timezone configuration](#timezone-configuration)
-  - [Starting, stopping, upgrading, and monitoring the container](#starting-stopping-upgrading-and-monitoring-the-container)
-  - [Troubleshooting](#troubleshooting)
+  - [Upgrade from an older RadarVirtuel configuration](#upgrade-from-an-older-radarvirtuel-configuration)
+  - [All parameters](#all-parameters)
+    - [Mandatory parameters](#mandatory-parameters)
+    - [Optional parameters](#optional-parameters)
+  - [Mapped Volumes](#mapped-volumes)
+  - [MLAT results](#mlat-results)
+  - [Recovering Station ID after a hardware change](#recovering-station-id-after-a-hardware-change)
   - [Further help](#further-help)
   - [OWNERSHIP AND LICENSE](#ownership-and-license)
 
@@ -26,13 +25,6 @@ RadarVirtuel can be reached at:
 
 - <http://www.radarvirtuel.com/>
 
-Before you install this container, you need a **feeder key**. To request one, email <support@adsbnetwork.com> with the following information:
-
-- Your name
-- The Lat/Lon and nearest airport of your station
-- Your Raspberry Pi model (or other hardware if not Raspberry Pi)
-- Mention that you will feed using a Docker container.
-
 ## Quick Start Guide
 
 These instructions are for people who are deploying on Raspberry Pi (3B+ or 4) with Raspberry OS or Ubuntu, and who already have a running `Docker` and `Docker-compose` setup with `readsb`, `dump1090-fa`, or a similar ADSB decoder running. That decoder can run inside a container or directly on the host.
@@ -42,131 +34,122 @@ You should also have received a Feeder Key as per the section above.
 With these 4 simple steps, you should be up and running in 5 minutes or less. If you need more detailed instructions, please continue reading the next few sections of this README.
 
 1. Download the [`docker-compose.yml`](docker-compose.yml) example file and add it to your existing `docker-compose.yml`, or run it stand-alone.
-2. In `docker-compose.yml`, please check the `${HOSTNAME}` variable:
-   - if you are using dockerized `readsb` or `tar1090` in the same docker-compose stack, then you can put in the name of the target container. Example: `SOURCE_HOST=readsb:30002`
-   - if you are using `dump1090[-fa]`, `readsb`, or `tar1090` WITHOUT docker or in a different docker stack:
-     - if it's on the local machine -- use the default value of `${HOSTNAME}:30002`
-     - if it's on a different machine -- use the hostname or IP address of the target machine, for example `SOURCE_HOST=192.168.1.10:30002`
-     - (Note - NEVER put "127.0.0.1" as the IP address - this won't work!)
-3. Make sure that you add the following parameters to your `.env` file, in the same directory as `docker-compose.yml`. You may already have some of these params in that file, in which case it's not necessary to duplicate them. You should have received your feeder key value from <support@adsbnetwork.com>.
+2. In `docker-compose.yml`, make sure that `BEASTHOST` or `SOURCE_HOST` points at your BEAST ADSB data source, for example `BEAST_HOST=ultrafeeder`. You can optionally add `BEASTPORT` or `SOURCE_PORT` if they aren't using the default port `30005`.
+3. Make sure that you set the following parameters at a minimum:
 
-```config
-RV_FEEDER_KEY=xxxx:123456789ABCDEF
-FEEDER_LAT=12.345678
-FEEDER_LONG=6.7890123
-FEEDER_ALT_M=12.3
+```yaml
+      - BEASTHOST=ultrafeeder
+      - RV_CONTRIB_NAME=My Name
+      - RV_CONTRIB_EMAIL=user@email.com
+      - LAT=${FEEDER_LAT}
+      - LON=${FEEDER_LONG}
+      - ALT_M=${FEEDER_ALT_M:-0}
 ```
 
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
 
-## Detailed Instructions
+## Upgrade from an older RadarVirtuel configuration
 
-## Prerequisites
+The fastest way to upgrade is by replacing the `Environment:` section of your existing Radarvirtuel service in `docker-compose.yml` with the one from [this file](docker-compose.yml). See also item 3 of the [Quick Start Guide](#quick-start-guide) for the minimum set of parameters.
 
-1. The use of this connector service assumes that you already have a working ADS-B station setup
+Note that you MUST fill in all parameters marked mandatory, and you MUST remove at least the `FEEDER_KEY` and `RV_SERVER` parameters from your environment. If you don't do this, the container logs will continue to complain!
 
-- Ensure you enabled RAW (=AVR) and BEAST data output on the application that actively processes your ADS-B data.
-- Your ADS-B station can be on the same machine as this application, or on a different machine.
-- Similarly, it doesn't matter if you are using a Containerized or non-Containerized setup.
+Also note that you MUST mount the `data` and `cpuinfo` volumes as shown in the example [docker-compose.yml](docker-compose.yml). If you don't do this, the container won't be able to remember the UID and will regularly get a new Station ID. This is bad and really annoying! Don't be that person!
 
-2. The use of this connector also assumes that you have installed `Docker` and `Docker-compose` on the machine you want to run `RadarVirtuel` on.
+## All parameters
 
-- For a good overview on Docker, installation, etc., please read Mike Nye's excellent [gitbook](https://mikenye.gitbook.io/ads-b/).
-- If you need to install `Docker` and/or `Docker-compose` on your machine, [go here](https://github.com/sdr-enthusiasts/docker-install) for a handy script that will take care of it for you
+The following parameters are supported.
 
-3. Last, you will need to get a `FEEDER_KEY` to identify your station to RadarVirtuel. See the "What is it?" section above for instructions on how to get this key.
-
-## Installation
-
-For a stand-alone installation on a machine with an existing ADS-B receiver, you can simply do this:
-
-```bash
-sudo mkdir -p /opt/adsb && sudo chmod a+rwx /opt/adsb && cd /opt/adsb
-wget https://raw.githubusercontent.com/kx1t/docker-radarvirtuel/main/docker-compose.yml
-```
-
-Then, edit the `docker-compose.yml` file and the `.env` file in the same directory using the instructions above.
-
-To add `RadarVirtuel` to an existing Docker Stack, simply copy and paste the relevant sections into your existing `docker-compose.yml` and `.env` files.
-
-## Environment Parameters for `docker-radarvirtuel`
-
-| Parameter         | Definition                                                                                                                                                                                                                                   | Value                                                                                                           |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `FEEDER_KEY`      | This key is provided by RadarVirtuel and is your PRIVATE KEY. Do no share this with anyone else.                                                                                                                                             | `[icao]:[private_key]`                                                                                          |
-| `SOURCE_HOST`     | host and port number of your ADSB receiver. When running stand-alone on your local machine, this should be `${HOSTNAME}`. The value after the `:` is the port number to the RAW or AVR service on the target machine, most probably `30002`. | `${HOSTNAME}:30002`                                                                                             |
-| `RV_SERVER`       | The hostname and the port of the RadarVirtuel server. You should NOT set this parameter unless specifically instructed. Note - this value may be overwritten/automatically updated if you are in a [predefined zone in North America](https://github.com/user-attachments/assets/c59b6026-3cc0-44ef-92b7-eec886555564) or [Europe](https://github.com/user-attachments/assets/1d76b061-cdfa-45f5-b531-b6030402e29a) | `mg22.adsbnetwork.com:50050`                                                                                     |
-| `VERBOSE`         | Write verbose messages to the log                                                                                                                                                                                                            | `OFF` (default) / `ON`                                                                                          |
-| `MLAT_SERVER`     | RV MLAT server address and port - do not change unless instructed to                                                                                                                                                                         | mlat.adsbnetwork.com:50000                                                                                      |
-| `MLAT_HOST`       | This is the same hostname as for SOURCE_HOST, but now using port 30005                                                                                                                                                                       | `${HOSTNAME}:30005`                                                                                             |
-| `MLAT_INPUT_TYPE` | Optional param to define MLAT Input Type - do not change unless instructed to                                                                                                                                                                | `auto` (default) / `dump1090` / `beast` / `radarcape_12mhz` / `radarcape_gps` / `radarcape` / `sbs` / `avrmlat` |
-| `MLAT_RESULTS`    | Optional param to define how to make the MLAT results available. Value is used with the `--results` option of `mlat-client`. For valid options, do `docker exec -t radarvirtuel mlat-client --help`                                          | `beast,listen,30105` (default)                                                                                  |
-| `LAT`             | This is your station latitude (used with MLAT)                                                                                                                                                                                               |                                                                                                                 |
-| `LON`             | This is your station longitude (used with MLAT)                                                                                                                                                                                              |                                                                                                                 |
-| `ALT`             | This is your antenna altitude above the ellipsoid (MSL). Use "ft" for feet or "m" for meters                                                                                                                                                 |                                                                                                                 |
-| `ENABLE_MLAT`     | Enable MLAT                                                                                                                                                                                                                                  | `true` (default) / `false`                                                                                      |
-
-## MLAT Configuration
-
-By default, MLAT is switched ON in the container. Please make sure to configure a valid `MLAT_HOST`, `LAT`, `LON`, and `ALT` in your `docker-compose.yml` setup. If you want to switch off MLAT, simply set `ENABLE_MLAT` to false.
-
-## Timezone configuration
-
-- The default timezone setting for the container mimics the host machine's timezone. Sometimes, it is desired to run the container in UTC instead.
-- To run the container in UTC, comment out the following lines (using `#`) in `docker-compose.yml`:
+### Mandatory parameters
 
 ```yaml
-#    volumes:
-#      - "/etc/localtime:/etc/localtime:ro"
-#      - "/etc/timezone:/etc/timezone:ro"
+      # ── ADSB Source ────────────────────────
+      - BEASTHOST=${BEASTHOST}
+      # ── Contributor (MANDATORY) ────────────────────────
+      - RV_CONTRIB_NAME=${RV_CONTRIB_NAME}
+      - RV_CONTRIB_EMAIL=${RV_CONTRIB_EMAIL}
+
+      # ── Position (OBLIGATOIRE) ────────────────────────────
+      # Note -- LAT, LON, ALT_M are supported as aliases
+      - RV_LAT=${FEEDER_LAT}
+      - RV_LON=${FEEDER_LONG}
+      - RV_ALT_M=${FEEDER_ALT_M:-0}
 ```
 
-## Starting, stopping, upgrading, and monitoring the container
+### Optional parameters
 
-To start the container for the first time:
+```yaml
+      # ── Station Label  ─────────────────────────
+      # Only fill this in if auto-detection of the nearest airport fails.
+      - RV_STATION_LABEL=${RV_STATION_LABEL:-}
 
-- `pushd /opt/adsb && docker-compose up -d && popd`
+      # ── UID station (optionnel) ───────────────────────────
+      # UID is auto-generated from your CPU serial number or Mac Address.
+      # Only add a random UID (for example, from `cat /proc/sys/kernel/random/uuid`)
+      # when auto-generation fails!
+      - RV_STATION_UID=${RV_STATION_UID:-}
 
-To restart the container:
+      # ── aircraft.json source ──────────────────────────────
+      # This parameter isn't needed if you configure the BEASTHOST
+      # You can optionally point this to the URL for aircraft.json 
+      # on a different machine
+      # readsb/tar1090 : http://IP_MACHINE/tar1090/data/aircraft.json
+      # dump1090       : http://IP_MACHINE/dump1090/data/aircraft.json
+      # port 8080      : http://IP_MACHINE:8080/data/aircraft.json
+      - RV_AIRCRAFT_URL=${RV_AIRCRAFT_URL}
 
-- `docker restart radarvirtuel`
+      # ── Feeding Interval ───────────────────────────────────────────
+      # How often data is sent to the RadarVirtuel server. Default: 5 secs
+      - RV_INTERVAL=${RV_INTERVAL:-5}
 
-To stop the container:
+      # ── MLAT parameters ───────────────────────────────────────────
+      # Set to "off" to disable MLAT:
+      ENABLE_MLAT=
 
-- `pushd /opt/adsb && docker-compose down && popd` <-- this stops all containers in the stack
-- `docker stop radarvirtuel` <-- this stops only RadarVirtuel
+      # ── Logging parameters ───────────────────────────────────────────
+      # Set to "on" to show info-level messages in the container logs:
+      VERBOSE=off
+```
 
-To download and deploy a new version of the container, if one exists:
+## Mapped Volumes
 
-- `pushd /opt/adsb && docker-compose pull && docker-compose up -d && popd`
+You really ***really*** should map the following volumes:
 
-To monitor the logs of the RadarVirtuel container:
+```yaml
+    volumes:
+      - "./data:/data:rw"
+      - "/proc/cpuinfo:/host/cpuinfo:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+```
 
-- `docker logs radarvirtuel` <-- shows all logs for RadarVirtuel in the buffer (warning - can be very long!)
-- `docker logs -f radarvirtuel` <-- shows the last few logs and waits for any new log entries, abort with CTRL-C
+- the `/data` volume is used to store your UID. Without this, there's a good change that your station ID will change whenever you restart the container, especially when you are on a machine that doesn't have a Serial Number in `/proc/cpuinfo` (which is the case for most x86 machines)
+- the `/proc/cpuinfo` volume mapping is to retrieve the CPU's serial number, if available. This is used to create a unique station ID
+- the `/etc/localtime` and `/etc/timezone` mappings are to ensure that the container uses the same time and timezone as the host machine
 
-## Troubleshooting
+## MLAT results
 
-- If things don't appear to work as they should, set `VERBOSE=ON` in your `docker-compose.yml` and restart the container. Then monitor `docker logs -f radarvirtuel` to see what is going on
-- If it complains about your `SOURCE_HOST`:
-  - Make sure your data source can be reached from inside the container. `SOURCE_HOST` should be set to:
-    - if it's a container within the same stack: the container name, for example `SOURCE_HOST=readsb:30002`
-    - if it's a separate container or a stand-alone installation on the same machine, `SOURCE_HOST` must be set to `SOURCE_HOST=${HOSTNAME}:30002`
-    - If it's a separate container on a different machine, you should use the full hostname or IP address of that machine. For example `SOURCE_HOST=192.168.1.10:30002`.
-  - Make sure that your `readsb` or `dump1090[-fa]` installation is providing RAW (AVR) data:
-    - Stand-alone `dump1090` variants must use the `--net-ro-port 30002` command line parameter
-    - Containerized `readsb` or `readsb-protobuf` should pass the following variable in the `environment:` section of `docker-compose.yml`: `READSB_NET_RAW_OUTPUT_PORT=30002`
-- If the logs complain about not being able to reach the RadarVirtuel server:
-  - Make sure your machine is connected to the internet. Try this command to check connectivity:
-    `netcat -u -z -v mg2.adsbnetwork.com 50050`
-- If it complains about errors in your `docker-compose.yml` file
-  - SPACING IS IMPORTANT. Spacing is important. There, I said it. Check that each line has the correct indentation
-  - Sometimes, there are problems with newline characters when you import from a Windows machine. In that case, you can easily convert your file to Unix format. There are multiple ways to do this, one of them is:
-    `cat docker-compose.yml | tr -dc '[:print:]\n' >/tmp/tmp.tmp && sudo mv -f /tmp/tmp.tmp docker-compose.yml`
+When MLAT is enabled and there are sufficient MLAT peers using RadarVirtuel in your region, you can feed the MLAT results back to your map. These are made available in the container on the default port `30105` and you can add them to your Ultrafeeder instance by adding this to the `ULTRAFEEDER_CONFIG` parameter: `mlathub,radarvirtuel,30105,beast_in;`
+
+## Recovering Station ID after a hardware change
+
+If you change your hardware, there's a good chance that the station ID will change. You can recover your original station ID when you have access to your old setup:
+
+1. Log in to the original machine and retrieve the UID: `cat /opt/adsb/rv_data/station_uid.txt`
+2. Add the following parameter to the `environment:` section of your `docker-compose.yml` file:
+
+   ```yaml
+   RV_STATION_LABEL=original_station_label
+   RV_STATION_UID=uid_from_the_original_machine
+   ```
+
+3. Restart your container
+
+If you don't have access to your original machine, you can contact <support@adsbnetwork.com> as they may be able to retrieve the UID for you.
 
 ## Further help
 
-- For help with credentials and service outages, please email <support@adsbnetwork.com>
+- For help with the RadarVirtual service and outages, please email <support@adsbnetwork.com>
 - For help with the Docker Container and related issues, please contact kx1t on this Discord channel: <https://discord.gg/m42azbZydy>
 
 ## OWNERSHIP AND LICENSE
