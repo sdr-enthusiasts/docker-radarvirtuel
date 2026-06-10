@@ -30,7 +30,7 @@ RadarVirtuel can be reached at:
 
 These instructions are for people who are deploying on Raspberry Pi (3B+ or 4) with Raspberry OS or Ubuntu, and who already have a running `Docker` and `Docker-compose` setup with `readsb`, `dump1090-fa`, or a similar ADSB decoder running. That decoder can run inside a container or directly on the host.
 
-You should also have received a Feeder Key as per the section above.
+Once correctly configured and running, you can check that RadarVirtuel is receiving your data by going to <https://radarvirtuel.com/station/XXXXX> where XXXX is your station ID (for example, KBED1).
 
 With these 4 simple steps, you should be up and running in 5 minutes or less. If you need more detailed instructions, please continue reading the next few sections of this README.
 
@@ -56,6 +56,8 @@ The fastest way to upgrade is by replacing the `Environment:` section of your ex
 Note that you MUST fill in all parameters marked mandatory, and you MUST remove at least the `FEEDER_KEY` and `RV_SERVER` parameters from your environment. If you don't do this, the container logs will continue to complain!
 
 Also note that you MUST mount the `data` and `cpuinfo` volumes as shown in the example [docker-compose.yml](docker-compose.yml). If you don't do this, the container won't be able to remember the UID and will regularly get a new Station ID. This is bad and really annoying! Don't be that person!
+
+Once correctly configured and running, you can check that RadarVirtuel is receiving your data by going to <https://radarvirtuel.com/station/XXXXX> where XXXX is your station ID (for example, KBED1).
 
 ### Upgrade Troubleshooting
 
