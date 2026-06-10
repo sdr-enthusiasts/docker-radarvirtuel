@@ -41,6 +41,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger('feeder_rv')
 
+_verbose_value = os.getenv('VERBOSE', '').strip().lower()
+_verbose_enabled = _verbose_value in {'on', 'true', 'yes', '1', 'enable', 'enabled'}
+
+if not _verbose_enabled:
+    def _quiet_info(*args, **kwargs):
+        return None
+
+    logger.info = _quiet_info  # type: ignore[assignment]
+
 
 class HealthStatusHandler(logging.Handler):
     """Maintain /tmp/healthstatus with last INFO/WARNING/ERROR and rolling counts."""

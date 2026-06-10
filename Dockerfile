@@ -40,12 +40,12 @@ RUN apt-get update -q && \
 
 COPY rootfs/ /
 
-
 VOLUME ["/data"]
 
 ENV RV_INTERVAL=5
 ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
 ENV MLAT_SERVER=mlat.adsbnetwork.com:50000
+ENV VERBOSE=off
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
-    CMD grep -q "OK" /var/log/feeder_rv.log 2>/dev/null || exit 1
+    CMD /scripts/healthcheck.sh

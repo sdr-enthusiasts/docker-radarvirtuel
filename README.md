@@ -97,6 +97,10 @@ The following parameters are supported.
       # Set to "off" to disable MLAT:
       ENABLE_MLAT=
 
+      # ── Logging parameters ───────────────────────────────────────────
+      # Set to "on" to show info-level messages in the container logs:
+      VERBOSE=off
+
 
 ```
 ## Mapped Volumes
