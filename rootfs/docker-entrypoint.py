@@ -188,7 +188,8 @@ def get_contrib_info():
 # ── Register station ──────────────────────────────────────────
 def register_station(uid, label, lat, lon, alt_m, name, email):
     try:
-        resp = api_post(RV_REGISTER, {
+        version = get_container_version()
+        payload = {
             'station_uid':   uid,
             'station_label': label,
             'lat':           lat,
@@ -197,7 +198,9 @@ def register_station(uid, label, lat, lon, alt_m, name, email):
             'contrib_name':  name,
             'contrib_email': email,
             'description':   f"Docker feeder — {label}",
-        }, uid)
+            'version':       version,
+        }
+        resp = api_post(RV_REGISTER, payload, uid)
         status = resp.get('status', '?').upper()
         actual = resp.get('station_label', label)
         log(f"Registration: {status} — station {actual} uid={uid}")
