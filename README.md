@@ -5,10 +5,12 @@
 - [Docker-RadarVirtuel](#docker-radarvirtuel)
   - [What is it?](#what-is-it)
   - [Quick Start Guide](#quick-start-guide)
+  - [Upgrade from an older RadarVirtuel configuration](#upgrade-from-an-older-radarvirtuel-configuration)
   - [All parameters](#all-parameters)
     - [Mandatory parameters](#mandatory-parameters)
     - [Optional parameters](#optional-parameters)
   - [Mapped Volumes](#mapped-volumes)
+  - [MLAT results](#mlat-results)
   - [Recovering Station ID after a hardware change](#recovering-station-id-after-a-hardware-change)
   - [Further help](#further-help)
   - [OWNERSHIP AND LICENSE](#ownership-and-license)
@@ -22,7 +24,6 @@ This application is a feeder service that takes RAW/AVR ADSB data from a service
 RadarVirtuel can be reached at:
 
 - <http://www.radarvirtuel.com/>
-
 
 ## Quick Start Guide
 
@@ -46,6 +47,14 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 ```
 
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
+
+## Upgrade from an older RadarVirtuel configuration
+
+The fastest way to upgrade is by replacing the `Environment:` section of your existing Radarvirtuel service in `docker-compose.yml` with the one from [this file](docker-compose.yml). See also item 3 of the [Quick Start Guide](#quick-start-guide) for the minimum set of parameters.
+
+Note that you MUST fill in all parameters marked mandatory, and you MUST remove at least the `FEEDER_KEY` and `RV_SERVER` parameters from your environment. If you don't do this, the container logs will continue to complain!
+
+Also note that you MUST mount the `data` and `cpuinfo` volumes as shown in the example [docker-compose.yml](docker-compose.yml). If you don't do this, the container won't be able to remember the UID and will regularly get a new Station ID. This is bad and really annoying! Don't be that person!
 
 ## All parameters
 
@@ -100,9 +109,8 @@ The following parameters are supported.
       # ── Logging parameters ───────────────────────────────────────────
       # Set to "on" to show info-level messages in the container logs:
       VERBOSE=off
-
-
 ```
+
 ## Mapped Volumes
 
 You really ***really*** should map the following volumes:
@@ -121,7 +129,7 @@ You really ***really*** should map the following volumes:
 
 ## MLAT results
 
-When MLAT is enabled and there are sufficient MLAT peers using RadarVirtuel in your region, you can feed the MLAT results back to your map. These are made available in the container on the default 
+When MLAT is enabled and there are sufficient MLAT peers using RadarVirtuel in your region, you can feed the MLAT results back to your map. These are made available in the container on the default port `30105` and you can add them to your Ultrafeeder instance by adding this to the `ULTRAFEEDER_CONFIG` parameter: `mlathub,radarvirtuel,30105,beast_in;`
 
 ## Recovering Station ID after a hardware change
 
@@ -129,10 +137,12 @@ If you change your hardware, there's a good chance that the station ID will chan
 
 1. Log in to the original machine and retrieve the UID: `cat /opt/adsb/rv_data/station_uid.txt`
 2. Add the following parameter to the `environment:` section of your `docker-compose.yml` file:
+
    ```yaml
    RV_STATION_LABEL=original_station_label
    RV_STATION_UID=uid_from_the_original_machine
    ```
+
 3. Restart your container
 
 If you don't have access to your original machine, you can contact <support@adsbnetwork.com> as they may be able to retrieve the UID for you.

@@ -5,8 +5,7 @@ services:
     hostname: radarvirtuel
     restart: always
     environment:
-      # BEASTHOST: ADSB data source in Beast format. Default value if omitted: "Ultrafeeder"
-      - BEASTHOST=
+      # MANDATORY parameters:
       # RV_CONTRIB_NAME and RV_CONTRIB_EMAIL: Mandatory parameters! Container won't run without them.
       - RV_CONTRIB_NAME=
       - RV_CONTRIB_EMAIL=
@@ -14,12 +13,17 @@ services:
       - LAT=${FEEDER_LAT}
       - LON=${FEEDER_LONG}
       - ALT_M=${FEEDER_ALT_M:-0}
+      # OPTIONAL parameters:
+      # BEASTHOST: ADSB data source in Beast format. Default value if omitted: "Ultrafeeder"
+      - BEASTHOST=
       # Logging parameters:
-      # Set to "on" to show info-level messages in the container logs
+      # Set VERBOSE to "on" to show info-level messages in the container logs
       - VERBOSE=off
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,relatime
     volumes:
+      # - you MUST mount the /data and /proc/cpuinfo volumes for the container to work properly.
+      # - the other two volumes are optional but recommended to have correct timezone settings in the container.
       - "./rv_data:/data:rw"
       - "/proc/cpuinfo:/host/cpuinfo:ro"
       - "/etc/localtime:/etc/localtime:ro"
