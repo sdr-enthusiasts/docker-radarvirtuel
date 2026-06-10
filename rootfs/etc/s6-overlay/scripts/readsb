@@ -19,14 +19,18 @@
 
 source /scripts/common
 
-if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
+if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" || -z "$RV_CONTRIB_NAME" || -z "$RV_CONTRIB_EMAIL" ]]; then
     stop_service
 fi
 
 export RV_LAT="${RV_LAT:-$LAT}"
 export RV_LON="${RV_LON:-$LON}"
 export BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
+BEASTHOST="${BEASTHOST%%:*}"
 export BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
+if [[ "$BEASTPORT" == "30002" ]]; then
+		BEASTPORT="30005"
+fi
 
 if [[ -z "$RV_LAT" || -z "$RV_LON" ]]; then
     "${s6wrap[@]}" echo "RV_LAT (or LAT) and RV_LON (or LON) must be set to the feeder's location. Please check your configuration."

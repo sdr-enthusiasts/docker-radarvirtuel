@@ -24,7 +24,7 @@ if chk_disabled "${ENABLE_MLAT}"; then
     stop_service
 fi
 
-if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
+if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" || -z "$RV_CONTRIB_NAME" || -z "$RV_CONTRIB_EMAIL" ]]; then
     stop_service
 fi
 
@@ -39,7 +39,11 @@ MLAT_INPUT_TYPE="${MLAT_INPUT_TYPE:-auto}"
 MLAT_RESULTS="${MLAT_RESULTS:-beast,listen,30105}"
 
 BEASTHOST="${BEASTHOST:-${SOURCE_HOST:-ultrafeeder}}"
+BEASTHOST="${BEASTHOST%%:*}"
 BEASTPORT="${BEASTPORT:-${SOURCE_PORT:-30005}}"
+if [[ "$BEASTPORT" == "30002" ]]; then
+		BEASTPORT="30005"
+fi
 
 MLAT_HOST="${MLAT_HOST:-$BEASTHOST:$BEASTPORT}"
 

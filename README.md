@@ -56,6 +56,22 @@ Note that you MUST fill in all parameters marked mandatory, and you MUST remove 
 
 Also note that you MUST mount the `data` and `cpuinfo` volumes as shown in the example [docker-compose.yml](docker-compose.yml). If you don't do this, the container won't be able to remember the UID and will regularly get a new Station ID. This is bad and really annoying! Don't be that person!
 
+### Upgrade Troubleshooting
+
+If things don't appear to work, check the container logs with this command: `docker logs radarvirtuel`. If you see any of the log messages below, then you haven't correctly followed the upgrade instructions:
+
+```text
+[2026-06-10 11:06:09.420][radarvirtuel] -----------------------------------------------------------------------------
+[2026-06-10 11:06:09.465][radarvirtuel] ATTENTION - this container has been updated, but your environment variables
+[2026-06-10 11:06:09.482][radarvirtuel] are still reflecting the old configuration. Please update your configuration
+[2026-06-10 11:06:09.526][radarvirtuel] using this example: https://sdr-e.com/docker-radarvirtuel/blob/main/docker-compose.yml
+[2026-06-10 11:06:09.546][radarvirtuel] The container is HALTED until you make these updates.
+[2026-06-10 11:06:09.568][radarvirtuel] Then remove these parameters from your configuration to make this message go away:
+[2026-06-10 11:06:09.600][radarvirtuel] RV_SERVER=mg22.adsbnetwork.com:50014
+[2026-06-10 11:06:09.611][radarvirtuel] FEEDER_KEY=xxxx:CFD76443214321423ADC786B4E303173B3B5
+[2026-06-10 11:06:09.641][radarvirtuel] -----------------------------------------------------------------------------
+```
+
 ## All parameters
 
 The following parameters are supported.
