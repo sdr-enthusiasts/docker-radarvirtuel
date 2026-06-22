@@ -26,7 +26,7 @@ export RV_LON="${RV_LON:-$LON}"
 export RV_ALT="${RV_ALT:-$ALT}"
 
 if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
-    sleep 2 
+    sleep 2
     "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
     "${s6wrap[@]}" echo "ATTENTION - this container has been updated, but your environment variables"
     "${s6wrap[@]}" echo "are still reflecting the old configuration. Please update your configuration"
@@ -41,7 +41,7 @@ if [[ -n "$RV_SERVER" || -n "$FEEDER_KEY" ]]; then
 fi
 
 if [[ -z "$RV_CONTRIB_NAME" || -z "$RV_CONTRIB_EMAIL" ]]; then
-    sleep 2 
+    sleep 2
     "${s6wrap[@]}" echo "-----------------------------------------------------------------------------"
     "${s6wrap[@]}" echo "ATTENTION - the RV_CONTRIB_NAME and RV_CONTRIB_EMAIL environment variables are not set."
     "${s6wrap[@]}" echo "Please update your configuration using this example:"

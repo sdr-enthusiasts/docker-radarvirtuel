@@ -4,7 +4,7 @@
 #               feeder_radarvirtuel.py — POST /api/feed with station tagging
 #               Base: sdr-enthusiasts/docker-baseimage:wreadsb
 # Author      : kx1t <kx1t@kx1t.com>
-# Org. Author : Laurent Duval <laurent.duval@adsbnetwork.com>   
+# Org. Author : Laurent Duval <laurent.duval@adsbnetwork.com>
 # ─────────────────────────────────────────────────────────────
 FROM ghcr.io/sdr-enthusiasts/docker-baseimage:wreadsb
 
@@ -20,7 +20,7 @@ ARG VERSION_BRANCH="##BRANCH##"
 
 ENV RV_AIRCRAFT_URL="file:///run/readsb/aircraft.json"
 ENV RV_INTERVAL=5
-ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json 
+ENV RV_AIRCRAFT_URL=file:///run/readsb/aircraft.json
 ENV MLAT_SERVER=mlat.adsbnetwork.com:50000
 ENV VERBOSE=off
 
