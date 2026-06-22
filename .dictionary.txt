@@ -1,1 +1,6 @@
 crate
+dependance
+fonctions
+invalide
+reste
+remplace
