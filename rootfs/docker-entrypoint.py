@@ -21,6 +21,7 @@ import json
 import uuid
 import urllib.request
 import urllib.error
+import urllib.parse
 import threading
 import subprocess
 import time
@@ -315,6 +316,14 @@ def main():
     label           = get_station_label(suggested)
     _, label        = register_station(uid, label, lat, lon, alt_m, name, email)
     save_station_id(label)
+    claim_params = {
+        'station_label': label,
+        'station_uid': uid,
+    }
+    if email:
+        claim_params['email'] = email
+    claim_query = urllib.parse.urlencode(claim_params)
+    log(f"claim your station here: https://radarvirtuel.com/claim-station?{claim_query}")
 
     generate_config(uid, label, lat, lon, alt_m, name, email)
 
