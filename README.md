@@ -32,13 +32,7 @@ These instructions are for people who are deploying on Raspberry Pi (3B+ or 4) w
 
 Once correctly configured and running, you can check that RadarVirtuel is receiving your data by going to <https://radarvirtuel.com/station/XXXXX> where XXXX is your station ID (for example, KBED1).
 
-You can claim your station by opening the claim link shown in the container logs:
-
-```sh
-docker logs radarvirtuel | grep claim
-```
-
-With these 4 simple steps, you should be up and running in 5 minutes or less. If you need more detailed instructions, please continue reading the next few sections of this README.
+With these 5 simple steps, you should be up and running in 5 minutes or less. If you need more detailed instructions, please continue reading the next few sections of this README.
 
 1. Download the [`docker-compose.yml`](docker-compose.yml) example file and add it to your existing `docker-compose.yml`, or run it stand-alone.
 2. In `docker-compose.yml`, make sure that `BEASTHOST` or `SOURCE_HOST` points at your BEAST ADSB data source, for example `BEAST_HOST=ultrafeeder`. You can optionally add `BEASTPORT` or `SOURCE_PORT` if they aren't using the default port `30005`.
@@ -54,6 +48,11 @@ With these 4 simple steps, you should be up and running in 5 minutes or less. If
 ```
 
 4. Restart your container stack with `docker-compose up -d` and you're in business. Monitor `docker logs -f radarvirtuel` to check for any errors.
+5. Claim your station by opening the claim link shown by:
+
+   ```sh
+   docker logs radarvirtuel | grep claim
+   ```
 
 ## Upgrade from an older RadarVirtuel configuration
 
