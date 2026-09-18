@@ -43,6 +43,23 @@
             enableBlack = true;
             enableFlake8 = true;
           };
+
+          extraExcludes = [
+            # Compiled Python bytecode is binary. The text hooks
+            # (trailing-whitespace, mixed-line-ending) do not "check"
+            # these files, they rewrite them: running them against
+            # rootfs/__pycache__/docker-entrypoint.cpython-312.pyc
+            # strips 3 bytes, breaks the .pyc magic number and
+            # corrupts the marshal payload, so both hooks then report
+            # "files were modified by this hook" and fail the run.
+            #
+            # Linting bytecode is meaningless either way, so exclude it
+            # rather than reformatting or deleting the artifact. Scoped
+            # to bytecode only, and matched anywhere in the tree so a
+            # __pycache__ committed elsewhere cannot reintroduce this.
+            "(^|/)__pycache__/"
+            "\\.py[co]$"
+          ];
         };
       });
 
