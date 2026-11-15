@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.description="RadarVirtuel ADS-B feeder v2"
 LABEL org.opencontainers.image.url="https://radarvirtuel.com"
 LABEL org.opencontainers.image.version="2"
 
-ARG VERSION_REPO="sdr-enthusiasts/docker-radarvirtuel"
+ARG VERSION_SHA
 ARG VERSION_BRANCH="##BRANCH##"
 
 ENV RV_AIRCRAFT_URL="file:///run/readsb/aircraft.json"
@@ -31,7 +31,7 @@ RUN apt-get update -q && \
         python3-requests && \
     #
     { [[ "${VERSION_BRANCH:0:1}" == "#" ]] && VERSION_BRANCH="main" || true; } && \
-    SHA="$(curl --fail --silent --show-error --location --retry 3 "https://api.github.com/repos/$VERSION_REPO/commits/$VERSION_BRANCH" | awk '$1=="\"sha\":" && !f {print substr($2,2,7); f=1}')" && \
+    SHA="${VERSION_SHA:-local}" && SHA="${SHA:0:7}" && \
     [[ -n "$SHA" ]] && \
     echo "$(TZ=UTC date +%Y%m%d-%H%M%S)_${SHA}_$VERSION_BRANCH" > /.CONTAINER_VERSION && \
     #
